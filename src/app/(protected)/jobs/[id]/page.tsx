@@ -123,6 +123,27 @@ export default function JobDetailPage() {
         </CardHeader>
       </Card>
 
+      {job.status === "rejected" && (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base text-destructive">Rejection details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div>
+              <p className="text-xs font-medium uppercase text-muted-foreground mb-1">Reason</p>
+              <p className="text-sm text-foreground whitespace-pre-wrap">
+                {job.review_notes?.trim() ? job.review_notes : "No reason provided"}
+              </p>
+            </div>
+            {job.reviewed_at != null && (
+              <p className="text-xs text-muted-foreground">
+                Rejected on {new Date(job.reviewed_at).toLocaleString()}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {actionError && <p className="text-sm text-destructive" role="alert">{actionError}</p>}
 
       <section className="space-y-4">
@@ -193,7 +214,7 @@ export default function JobDetailPage() {
           <DialogHeader>
             <DialogTitle>Approve Job</DialogTitle>
             <DialogDescription>
-              Confirm you want to approve this job. This action will mark the job as approved.
+            Please double check the information. Once you save a field, you won't be able to change it again.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">

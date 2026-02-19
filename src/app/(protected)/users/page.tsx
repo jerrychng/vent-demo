@@ -3,9 +3,11 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
 import type { User, UserListItem, UsersResponse } from "@/types/models";
-import { useEffect, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -23,18 +25,27 @@ import {
 
 export default function EngineerPage() {
   const { user, loading } = useAuth();
+  const canManageEngineers =
+    user?.role === "super_admin" || user?.role === "trade_manager";
 
   const [users, setUsers] = useState<UserListItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [viewDetail, setViewDetail] = useState<User | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    full_name: "",
+  });
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !canManageEngineers) return;
     apiFetch<UsersResponse>("/users?role=engineer")
       .then((res) => setUsers(res.users))
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load engineers"));
-  }, [user]);
+  }, [user, canManageEngineers]);
 
   async function openUserDetail(id: number) {
     setLoadingDetail(true);
@@ -49,6 +60,31 @@ export default function EngineerPage() {
     }
   }
 
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      await apiFetch("/users", {
+        method: "POST",
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+          full_name: form.full_name,
+          role: "engineer",
+        }),
+      });
+      const res = await apiFetch<UsersResponse>("/users?role=engineer");
+      setUsers(res.users);
+      setShowForm(false);
+      setForm({ email: "", password: "", full_name: "" });
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to create engineer");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   if (loading || !user) {
     return (
       <div className="space-y-2">
@@ -57,13 +93,74 @@ export default function EngineerPage() {
     );
   }
 
+  if (!canManageEngineers) {
+    return (
+      <div className="space-y-2">
+        <p className="text-sm text-destructive">You do not have permission to view engineers.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Engineers</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Engineers</h1>
+        <Button variant={showForm ? "outline" : "default"} onClick={() => setShowForm((v) => !v)}>
+          {showForm ? "Cancel" : "Create engineer"}
+        </Button>
+      </div>
 
-      <p className="text-sm text-muted-foreground">List engineers.</p>
+      <p className="text-sm text-muted-foreground">List engineers and create engineer accounts.</p>
 
       {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+
+      {showForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>New engineer</CardTitle>
+            <CardDescription>Add an engineer account</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="full_name">Full name <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="full_name"
+                    required
+                    value={form.full_name}
+                    onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="email"
+                    required
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="password">Password <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="password"
+                    required
+                    type="password"
+                    minLength={6}
+                    value={form.password}
+                    onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? "Creating..." : "Create engineer"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <Table>

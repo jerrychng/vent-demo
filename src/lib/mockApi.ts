@@ -424,7 +424,12 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
   if (rejectMatch && method === "POST") {
     const id = rejectMatch[1];
     const job = mockJobDetails[id];
-    if (job) job.status = "rejected";
+    if (job) {
+      const { reason } = (body as { reason?: string }) || {};
+      job.status = "rejected";
+      job.review_notes = reason != null ? String(reason).trim() || null : null;
+      job.reviewed_at = now();
+    }
     return {};
   }
 

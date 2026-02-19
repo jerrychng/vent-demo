@@ -10,6 +10,9 @@ import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type SetupResponse = {
   id: number;
@@ -46,61 +49,107 @@ export default function SetupPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-100">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm bg-white shadow rounded p-6 space-y-4"
-      >
-        <h1 className="text-xl font-semibold">Initial setup</h1>
-        <p className="text-sm text-slate-600">
-          Create super admin account.
-        </p>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <div className="space-y-1 text-sm">
-          <label className="block">
-            Full name
-            <input
-              type="text"
-              className="mt-1 w-full border rounded px-2 py-1"
-              value={full_name}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-            />
-          </label>
-        </div>
-        <div className="space-y-1 text-sm">
-          <label className="block">
-            Email
-            <input
-              type="email"
-              className="mt-1 w-full border rounded px-2 py-1"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </label>
-        </div>
-        <div className="space-y-1 text-sm">
-          <label className="block">
-            Password
-            <input
-              type="password"
-              className="mt-1 w-full border rounded px-2 py-1"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </label>
-        </div>
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "Creating account..." : "Create super admin"}
-        </Button>
-        <p className="text-center text-sm text-slate-500">
-          <Link href="/login" className="text-slate-700 hover:underline">
-            Back to login
-          </Link>
-        </p>
-      </form>
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#27549d] via-[#4f71b7] to-[#9eb3dc] px-4 py-10 flex items-center justify-center">
+      <Card className="relative z-10 w-full max-w-sm rounded-[12px] border border-[#D8E6FF] bg-white/50 text-[#17325e] backdrop-blur-[4px] shadow-2xl">
+        <CardHeader>
+          <CardTitle>Initial setup</CardTitle>
+          <CardDescription className="text-muted-foreground">Create super admin account.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && <p className="text-sm text-red-700">{error}</p>}
+            <div className="space-y-2">
+              <Label htmlFor="full_name" className="text-[#17325e]">Full name</Label>
+              <div className="relative">
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 bg-[#27549d]"
+                  style={{
+                    maskImage: "url('/assets/user_2.svg')",
+                    WebkitMaskImage: "url('/assets/user_2.svg')",
+                    maskRepeat: "no-repeat",
+                    WebkitMaskRepeat: "no-repeat",
+                    maskPosition: "center",
+                    WebkitMaskPosition: "center",
+                    maskSize: "contain",
+                    WebkitMaskSize: "contain",
+                  }}
+                />
+                <Input
+                  id="full_name"
+                  type="text"
+                  className="border-[#D8E6FF] bg-white/70 pl-10 text-[#17325e] placeholder:text-[#17325e]/60"
+                  value={full_name}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-[#17325e]">Email</Label>
+              <div className="relative">
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 bg-[#27549d]"
+                  style={{
+                    maskImage: "url('/assets/user_2.svg')",
+                    WebkitMaskImage: "url('/assets/user_2.svg')",
+                    maskRepeat: "no-repeat",
+                    WebkitMaskRepeat: "no-repeat",
+                    maskPosition: "center",
+                    WebkitMaskPosition: "center",
+                    maskSize: "contain",
+                    WebkitMaskSize: "contain",
+                  }}
+                />
+                <Input
+                  id="email"
+                  type="email"
+                  className="border-[#D8E6FF] bg-white/70 pl-10 text-[#17325e] placeholder:text-[#17325e]/60"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-[#17325e]">Password</Label>
+              <div className="relative">
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 bg-[#27549d]"
+                  style={{
+                    maskImage: "url('/assets/lock_circle.svg')",
+                    WebkitMaskImage: "url('/assets/lock_circle.svg')",
+                    maskRepeat: "no-repeat",
+                    WebkitMaskRepeat: "no-repeat",
+                    maskPosition: "center",
+                    WebkitMaskPosition: "center",
+                    maskSize: "contain",
+                    WebkitMaskSize: "contain",
+                  }}
+                />
+                <Input
+                  id="password"
+                  type="password"
+                  className="border-[#D8E6FF] bg-white/70 pl-10 text-[#17325e] placeholder:text-[#17325e]/60"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? "Creating account..." : "Create super admin"}
+            </Button>
+          </form>
+          <p className="text-center text-sm text-[#17325e]/80">
+            <Link href="/login" className="text-[#17325e] hover:underline">
+              Back to login
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
     </main>
   );
 }

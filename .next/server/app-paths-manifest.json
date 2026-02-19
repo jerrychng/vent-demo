@@ -1,9 +1,6 @@
 {
   "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/page": "app/page.js",
-  "/(protected)/dashboard/page": "app/(protected)/dashboard/page.js",
+  "/(auth)/setup/page": "app/(auth)/setup/page.js",
   "/(protected)/users/page": "app/(protected)/users/page.js",
-  "/(protected)/templates/page": "app/(protected)/templates/page.js",
-  "/(protected)/jobs/page": "app/(protected)/jobs/page.js",
   "/(protected)/sites/page": "app/(protected)/sites/page.js"
 }

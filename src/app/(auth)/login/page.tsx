@@ -37,46 +37,80 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-muted">
-      <Card className="w-full max-w-sm">
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#27549d] via-[#4f71b7] to-[#9eb3dc] px-4 py-10 flex items-center justify-center">
+      <Card className="relative z-10 w-full max-w-sm rounded-[12px] border border-[#D8E6FF] bg-white/50 text-[#17325e] backdrop-blur-[4px] shadow-2xl">
         <CardHeader>
           <CardTitle>Vent Hygiene System Login</CardTitle>
-          <CardDescription>Sign in with your account</CardDescription>
+          <CardDescription className="text-muted-foreground">Sign in with your account</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <p className="text-sm text-destructive" role="alert">
+              <p className="text-sm text-red-700" role="alert">
                 {error}
               </p>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <Label htmlFor="email" className="text-[#17325e]">Email</Label>
+              <div className="relative">
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 bg-[#27549d]"
+                  style={{
+                    maskImage: "url('/assets/user_2.svg')",
+                    WebkitMaskImage: "url('/assets/user_2.svg')",
+                    maskRepeat: "no-repeat",
+                    WebkitMaskRepeat: "no-repeat",
+                    maskPosition: "center",
+                    WebkitMaskPosition: "center",
+                    maskSize: "contain",
+                    WebkitMaskSize: "contain",
+                  }}
+                />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  className="border-[#D8E6FF] bg-white/70 pl-10 text-[#17325e] placeholder:text-[#17325e]/60"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <Label htmlFor="password" className="text-[#17325e]">Password</Label>
+              <div className="relative">
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 bg-[#27549d]"
+                  style={{
+                    maskImage: "url('/assets/lock_circle.svg')",
+                    WebkitMaskImage: "url('/assets/lock_circle.svg')",
+                    maskRepeat: "no-repeat",
+                    WebkitMaskRepeat: "no-repeat",
+                    maskPosition: "center",
+                    WebkitMaskPosition: "center",
+                    maskSize: "contain",
+                    WebkitMaskSize: "contain",
+                  }}
+                />
+                <Input
+                  id="password"
+                  type="password"
+                  className="border-[#D8E6FF] bg-white/70 pl-10 text-[#17325e] placeholder:text-[#17325e]/60"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
-          <p className="text-center text-sm text-muted-foreground">
-            <Link href="/setup" className="text-primary hover:underline">
+          <p className="text-center text-sm text-[#17325e]/80">
+            <Link href="/setup" className="text-[#17325e] hover:underline">
               Super Admin Sign Up
             </Link>
           </p>

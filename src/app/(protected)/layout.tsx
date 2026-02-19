@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/sheet";
 import { LayoutDashboard, BriefcaseBusiness, Building2, FileText, Users, LogOut, Menu, UserCog } from "lucide-react";
 import type { User } from "@/types/models";
+import LoadingSpinner from "@/app/components/LoadingSpinner";
 
 const sidebarNavClass =
   "w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground";
@@ -80,12 +81,14 @@ function SidebarContent({
               Sites
             </Button>
           </Link>
-          <Link href="/users" onClick={onNavClick}>
-            <Button variant="ghost" className={pathname.startsWith("/users") ? sidebarNavActiveClass : sidebarNavClass}>
-              <Users className="h-4 w-4" />
-              Engineers
-            </Button>
-          </Link>
+          {(user.role === "super_admin" || user.role === "trade_manager") && (
+            <Link href="/users" onClick={onNavClick}>
+              <Button variant="ghost" className={pathname.startsWith("/users") ? sidebarNavActiveClass : sidebarNavClass}>
+                <Users className="h-4 w-4" />
+                Engineers
+              </Button>
+            </Link>
+          )}
           {user.role === "super_admin" && (
             <Link href="/trade-managers" onClick={onNavClick}>
               <Button variant="ghost" className={pathname.startsWith("/trade-managers") ? sidebarNavActiveClass : sidebarNavClass}>
@@ -127,11 +130,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
   }
 
   if (loading || (!user && typeof window !== "undefined")) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading...</p>
-      </main>
-    );
+    return <LoadingSpinner variant="fixed" />;
   }
 
   if (!user) {
