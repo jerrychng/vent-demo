@@ -202,7 +202,7 @@ export default function TradeManagersPage() {
       </Card>
 
       <Dialog open={!!viewDetail} onOpenChange={(open) => !open && setViewDetail(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md rounded-[12px]">
           <DialogHeader>
             <DialogTitle>{viewDetail?.full_name ?? "Trade Manager"}</DialogTitle>
           </DialogHeader>

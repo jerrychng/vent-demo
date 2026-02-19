@@ -78,6 +78,17 @@ module.exports = require("next/dist\\client\\components\\static-generation-async
 
 /***/ }),
 
+/***/ "path":
+/*!***********************!*\
+  !*** external "path" ***!
+  \***********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("path");
+
+/***/ }),
+
 /***/ "url":
 /*!**********************!*\
   !*** external "url" ***!
@@ -86,6 +97,17 @@ module.exports = require("next/dist\\client\\components\\static-generation-async
 
 "use strict";
 module.exports = require("url");
+
+/***/ }),
+
+/***/ "util":
+/*!***********************!*\
+  !*** external "util" ***!
+  \***********************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("util");
 
 /***/ }),
 
@@ -120,6 +142,16 @@ eval("Promise.resolve(/*! import() eager */).then(__webpack_require__.bind(__web
 
 /***/ }),
 
+/***/ "(ssr)/./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?modules=C%3A%5CUsers%5CJerryChng.YingJie%5COneDrive%20-%20Aspect%20Maintenance%20Services%20Ltd%5CDesktop%5Cvent-frontend%5Csrc%5Capp%5Cpage.tsx&server=true!":
+/*!*******************************************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?modules=C%3A%5CUsers%5CJerryChng.YingJie%5COneDrive%20-%20Aspect%20Maintenance%20Services%20Ltd%5CDesktop%5Cvent-frontend%5Csrc%5Capp%5Cpage.tsx&server=true! ***!
+  \*******************************************************************************************************************************************************************************************************************************************************/
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
+
+eval("Promise.resolve(/*! import() eager */).then(__webpack_require__.bind(__webpack_require__, /*! ./src/app/page.tsx */ \"(ssr)/./src/app/page.tsx\"))//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKHNzcikvLi9ub2RlX21vZHVsZXMvbmV4dC9kaXN0L2J1aWxkL3dlYnBhY2svbG9hZGVycy9uZXh0LWZsaWdodC1jbGllbnQtZW50cnktbG9hZGVyLmpzP21vZHVsZXM9QyUzQSU1Q1VzZXJzJTVDSmVycnlDaG5nLllpbmdKaWUlNUNPbmVEcml2ZSUyMC0lMjBBc3BlY3QlMjBNYWludGVuYW5jZSUyMFNlcnZpY2VzJTIwTHRkJTVDRGVza3RvcCU1Q3ZlbnQtZnJvbnRlbmQlNUNzcmMlNUNhcHAlNUNwYWdlLnRzeCZzZXJ2ZXI9dHJ1ZSEiLCJtYXBwaW5ncyI6IkFBQUEiLCJzb3VyY2VzIjpbIndlYnBhY2s6Ly92ZW50LWZyb250ZW5kLz82YzcwIl0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCgvKiB3ZWJwYWNrTW9kZTogXCJlYWdlclwiICovIFwiQzpcXFxcVXNlcnNcXFxcSmVycnlDaG5nLllpbmdKaWVcXFxcT25lRHJpdmUgLSBBc3BlY3QgTWFpbnRlbmFuY2UgU2VydmljZXMgTHRkXFxcXERlc2t0b3BcXFxcdmVudC1mcm9udGVuZFxcXFxzcmNcXFxcYXBwXFxcXHBhZ2UudHN4XCIpIl0sIm5hbWVzIjpbXSwic291cmNlUm9vdCI6IiJ9\n//# sourceURL=webpack-internal:///(ssr)/./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?modules=C%3A%5CUsers%5CJerryChng.YingJie%5COneDrive%20-%20Aspect%20Maintenance%20Services%20Ltd%5CDesktop%5Cvent-frontend%5Csrc%5Capp%5Cpage.tsx&server=true!\n");
+
+/***/ }),
+
 /***/ "(ssr)/./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?server=true!":
 /*!******************************************************************************************************!*\
   !*** ./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?server=true! ***!
@@ -127,6 +159,17 @@ eval("Promise.resolve(/*! import() eager */).then(__webpack_require__.bind(__web
 /***/ (() => {
 
 
+
+/***/ }),
+
+/***/ "(ssr)/./src/app/page.tsx":
+/*!**************************!*\
+  !*** ./src/app/page.tsx ***!
+  \**************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ HomePage)\n/* harmony export */ });\n/* harmony import */ var react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react/jsx-dev-runtime */ \"(ssr)/./node_modules/next/dist/server/future/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js\");\n/* harmony import */ var react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__);\n/* harmony import */ var next_image__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! next/image */ \"(ssr)/./node_modules/next/image.js\");\n/* harmony import */ var next_image__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(next_image__WEBPACK_IMPORTED_MODULE_1__);\n/* harmony import */ var next_navigation__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! next/navigation */ \"(ssr)/./node_modules/next/navigation.js\");\n/* harmony import */ var next_navigation__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(next_navigation__WEBPACK_IMPORTED_MODULE_2__);\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react */ \"(ssr)/./node_modules/next/dist/server/future/route-modules/app-page/vendored/ssr/react.js\");\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_3__);\n/* __next_internal_client_entry_do_not_use__ default auto */ \n\n\n\nfunction HomePage() {\n    const router = (0,next_navigation__WEBPACK_IMPORTED_MODULE_2__.useRouter)();\n    (0,react__WEBPACK_IMPORTED_MODULE_3__.useEffect)(()=>{\n        const timer = window.setTimeout(()=>{\n            router.replace(\"/login\");\n        }, 1800);\n        return ()=>window.clearTimeout(timer);\n    }, [\n        router\n    ]);\n    return /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(\"main\", {\n        className: \"relative min-h-screen overflow-hidden bg-[#27549d]\",\n        children: [\n            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(\"div\", {\n                className: \"md:hidden\",\n                children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)((next_image__WEBPACK_IMPORTED_MODULE_1___default()), {\n                    src: \"/assets/Splash.png\",\n                    alt: \"Aspect splash screen\",\n                    fill: true,\n                    priority: true,\n                    className: \"object-cover\",\n                    sizes: \"100vw\"\n                }, void 0, false, {\n                    fileName: \"C:\\\\Users\\\\JerryChng.YingJie\\\\OneDrive - Aspect Maintenance Services Ltd\\\\Desktop\\\\vent-frontend\\\\src\\\\app\\\\page.tsx\",\n                    lineNumber: 21,\n                    columnNumber: 9\n                }, this)\n            }, void 0, false, {\n                fileName: \"C:\\\\Users\\\\JerryChng.YingJie\\\\OneDrive - Aspect Maintenance Services Ltd\\\\Desktop\\\\vent-frontend\\\\src\\\\app\\\\page.tsx\",\n                lineNumber: 20,\n                columnNumber: 7\n            }, this),\n            /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(\"div\", {\n                className: \"relative hidden min-h-screen md:flex items-center justify-center bg-gradient-to-br from-[#27549d] via-[#3f67af] to-[#8ea9d9]\",\n                children: [\n                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(\"div\", {\n                        className: \"absolute inset-0 bg-[radial-gradient(circle_at_30%_25%,rgba(255,255,255,0.18),transparent_45%)]\"\n                    }, void 0, false, {\n                        fileName: \"C:\\\\Users\\\\JerryChng.YingJie\\\\OneDrive - Aspect Maintenance Services Ltd\\\\Desktop\\\\vent-frontend\\\\src\\\\app\\\\page.tsx\",\n                        lineNumber: 32,\n                        columnNumber: 9\n                    }, this),\n                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)((next_image__WEBPACK_IMPORTED_MODULE_1___default()), {\n                        src: \"/assets/VanAspect.png\",\n                        alt: \"Aspect van\",\n                        width: 980,\n                        height: 480,\n                        priority: true,\n                        className: \"absolute bottom-16 left-1/2 w-[42vw] max-w-[620px] min-w-[420px] -translate-x-1/2 object-contain\"\n                    }, void 0, false, {\n                        fileName: \"C:\\\\Users\\\\JerryChng.YingJie\\\\OneDrive - Aspect Maintenance Services Ltd\\\\Desktop\\\\vent-frontend\\\\src\\\\app\\\\page.tsx\",\n                        lineNumber: 33,\n                        columnNumber: 9\n                    }, this),\n                    /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(\"div\", {\n                        className: \"relative z-10 flex flex-col items-center gap-6\",\n                        children: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)((next_image__WEBPACK_IMPORTED_MODULE_1___default()), {\n                            src: \"/assets/aspect-logo-primary.svg\",\n                            alt: \"Aspect Maintenance Services\",\n                            width: 360,\n                            height: 70,\n                            priority: true,\n                            className: \"w-[300px] lg:w-[360px]\"\n                        }, void 0, false, {\n                            fileName: \"C:\\\\Users\\\\JerryChng.YingJie\\\\OneDrive - Aspect Maintenance Services Ltd\\\\Desktop\\\\vent-frontend\\\\src\\\\app\\\\page.tsx\",\n                            lineNumber: 42,\n                            columnNumber: 11\n                        }, this)\n                    }, void 0, false, {\n                        fileName: \"C:\\\\Users\\\\JerryChng.YingJie\\\\OneDrive - Aspect Maintenance Services Ltd\\\\Desktop\\\\vent-frontend\\\\src\\\\app\\\\page.tsx\",\n                        lineNumber: 41,\n                        columnNumber: 9\n                    }, this)\n                ]\n            }, void 0, true, {\n                fileName: \"C:\\\\Users\\\\JerryChng.YingJie\\\\OneDrive - Aspect Maintenance Services Ltd\\\\Desktop\\\\vent-frontend\\\\src\\\\app\\\\page.tsx\",\n                lineNumber: 31,\n                columnNumber: 7\n            }, this)\n        ]\n    }, void 0, true, {\n        fileName: \"C:\\\\Users\\\\JerryChng.YingJie\\\\OneDrive - Aspect Maintenance Services Ltd\\\\Desktop\\\\vent-frontend\\\\src\\\\app\\\\page.tsx\",\n        lineNumber: 19,\n        columnNumber: 5\n    }, this);\n}\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKHNzcikvLi9zcmMvYXBwL3BhZ2UudHN4IiwibWFwcGluZ3MiOiI7Ozs7Ozs7Ozs7Ozs7QUFFK0I7QUFDYTtBQUNWO0FBRW5CLFNBQVNHO0lBQ3RCLE1BQU1DLFNBQVNILDBEQUFTQTtJQUV4QkMsZ0RBQVNBLENBQUM7UUFDUixNQUFNRyxRQUFRQyxPQUFPQyxVQUFVLENBQUM7WUFDOUJILE9BQU9JLE9BQU8sQ0FBQztRQUNqQixHQUFHO1FBRUgsT0FBTyxJQUFNRixPQUFPRyxZQUFZLENBQUNKO0lBQ25DLEdBQUc7UUFBQ0Q7S0FBTztJQUVYLHFCQUNFLDhEQUFDTTtRQUFLQyxXQUFVOzswQkFDZCw4REFBQ0M7Z0JBQUlELFdBQVU7MEJBQ2IsNEVBQUNYLG1EQUFLQTtvQkFDSmEsS0FBSTtvQkFDSkMsS0FBSTtvQkFDSkMsSUFBSTtvQkFDSkMsUUFBUTtvQkFDUkwsV0FBVTtvQkFDVk0sT0FBTTs7Ozs7Ozs7Ozs7MEJBSVYsOERBQUNMO2dCQUFJRCxXQUFVOztrQ0FDYiw4REFBQ0M7d0JBQUlELFdBQVU7Ozs7OztrQ0FDZiw4REFBQ1gsbURBQUtBO3dCQUNKYSxLQUFJO3dCQUNKQyxLQUFJO3dCQUNKSSxPQUFPO3dCQUNQQyxRQUFRO3dCQUNSSCxRQUFRO3dCQUNSTCxXQUFVOzs7Ozs7a0NBRVosOERBQUNDO3dCQUFJRCxXQUFVO2tDQUNiLDRFQUFDWCxtREFBS0E7NEJBQ0phLEtBQUk7NEJBQ0pDLEtBQUk7NEJBQ0pJLE9BQU87NEJBQ1BDLFFBQVE7NEJBQ1JILFFBQVE7NEJBQ1JMLFdBQVU7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBTXRCIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vdmVudC1mcm9udGVuZC8uL3NyYy9hcHAvcGFnZS50c3g/ZjY4YSJdLCJzb3VyY2VzQ29udGVudCI6WyJcInVzZSBjbGllbnRcIjtcblxuaW1wb3J0IEltYWdlIGZyb20gXCJuZXh0L2ltYWdlXCI7XG5pbXBvcnQgeyB1c2VSb3V0ZXIgfSBmcm9tIFwibmV4dC9uYXZpZ2F0aW9uXCI7XG5pbXBvcnQgeyB1c2VFZmZlY3QgfSBmcm9tIFwicmVhY3RcIjtcblxuZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gSG9tZVBhZ2UoKSB7XG4gIGNvbnN0IHJvdXRlciA9IHVzZVJvdXRlcigpO1xuXG4gIHVzZUVmZmVjdCgoKSA9PiB7XG4gICAgY29uc3QgdGltZXIgPSB3aW5kb3cuc2V0VGltZW91dCgoKSA9PiB7XG4gICAgICByb3V0ZXIucmVwbGFjZShcIi9sb2dpblwiKTtcbiAgICB9LCAxODAwKTtcblxuICAgIHJldHVybiAoKSA9PiB3aW5kb3cuY2xlYXJUaW1lb3V0KHRpbWVyKTtcbiAgfSwgW3JvdXRlcl0pO1xuXG4gIHJldHVybiAoXG4gICAgPG1haW4gY2xhc3NOYW1lPVwicmVsYXRpdmUgbWluLWgtc2NyZWVuIG92ZXJmbG93LWhpZGRlbiBiZy1bIzI3NTQ5ZF1cIj5cbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwibWQ6aGlkZGVuXCI+XG4gICAgICAgIDxJbWFnZVxuICAgICAgICAgIHNyYz1cIi9hc3NldHMvU3BsYXNoLnBuZ1wiXG4gICAgICAgICAgYWx0PVwiQXNwZWN0IHNwbGFzaCBzY3JlZW5cIlxuICAgICAgICAgIGZpbGxcbiAgICAgICAgICBwcmlvcml0eVxuICAgICAgICAgIGNsYXNzTmFtZT1cIm9iamVjdC1jb3ZlclwiXG4gICAgICAgICAgc2l6ZXM9XCIxMDB2d1wiXG4gICAgICAgIC8+XG4gICAgICA8L2Rpdj5cblxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJyZWxhdGl2ZSBoaWRkZW4gbWluLWgtc2NyZWVuIG1kOmZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGJnLWdyYWRpZW50LXRvLWJyIGZyb20tWyMyNzU0OWRdIHZpYS1bIzNmNjdhZl0gdG8tWyM4ZWE5ZDldXCI+XG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYWJzb2x1dGUgaW5zZXQtMCBiZy1bcmFkaWFsLWdyYWRpZW50KGNpcmNsZV9hdF8zMCVfMjUlLHJnYmEoMjU1LDI1NSwyNTUsMC4xOCksdHJhbnNwYXJlbnRfNDUlKV1cIiAvPlxuICAgICAgICA8SW1hZ2VcbiAgICAgICAgICBzcmM9XCIvYXNzZXRzL1ZhbkFzcGVjdC5wbmdcIlxuICAgICAgICAgIGFsdD1cIkFzcGVjdCB2YW5cIlxuICAgICAgICAgIHdpZHRoPXs5ODB9XG4gICAgICAgICAgaGVpZ2h0PXs0ODB9XG4gICAgICAgICAgcHJpb3JpdHlcbiAgICAgICAgICBjbGFzc05hbWU9XCJhYnNvbHV0ZSBib3R0b20tMTYgbGVmdC0xLzIgdy1bNDJ2d10gbWF4LXctWzYyMHB4XSBtaW4tdy1bNDIwcHhdIC10cmFuc2xhdGUteC0xLzIgb2JqZWN0LWNvbnRhaW5cIlxuICAgICAgICAvPlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInJlbGF0aXZlIHotMTAgZmxleCBmbGV4LWNvbCBpdGVtcy1jZW50ZXIgZ2FwLTZcIj5cbiAgICAgICAgICA8SW1hZ2VcbiAgICAgICAgICAgIHNyYz1cIi9hc3NldHMvYXNwZWN0LWxvZ28tcHJpbWFyeS5zdmdcIlxuICAgICAgICAgICAgYWx0PVwiQXNwZWN0IE1haW50ZW5hbmNlIFNlcnZpY2VzXCJcbiAgICAgICAgICAgIHdpZHRoPXszNjB9XG4gICAgICAgICAgICBoZWlnaHQ9ezcwfVxuICAgICAgICAgICAgcHJpb3JpdHlcbiAgICAgICAgICAgIGNsYXNzTmFtZT1cInctWzMwMHB4XSBsZzp3LVszNjBweF1cIlxuICAgICAgICAgIC8+XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9kaXY+XG4gICAgPC9tYWluPlxuICApO1xufVxuIl0sIm5hbWVzIjpbIkltYWdlIiwidXNlUm91dGVyIiwidXNlRWZmZWN0IiwiSG9tZVBhZ2UiLCJyb3V0ZXIiLCJ0aW1lciIsIndpbmRvdyIsInNldFRpbWVvdXQiLCJyZXBsYWNlIiwiY2xlYXJUaW1lb3V0IiwibWFpbiIsImNsYXNzTmFtZSIsImRpdiIsInNyYyIsImFsdCIsImZpbGwiLCJwcmlvcml0eSIsInNpemVzIiwid2lkdGgiLCJoZWlnaHQiXSwic291cmNlUm9vdCI6IiJ9\n//# sourceURL=webpack-internal:///(ssr)/./src/app/page.tsx\n");
 
 /***/ }),
 
@@ -258,7 +301,25 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ HomePage)\n/* harmony export */ });\n/* harmony import */ var next_navigation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! next/navigation */ \"(rsc)/./node_modules/next/navigation.js\");\n/* harmony import */ var next_navigation__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(next_navigation__WEBPACK_IMPORTED_MODULE_0__);\n\nfunction HomePage() {\n    (0,next_navigation__WEBPACK_IMPORTED_MODULE_0__.redirect)(\"/login\");\n}\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKHJzYykvLi9zcmMvYXBwL3BhZ2UudHN4IiwibWFwcGluZ3MiOiI7Ozs7OztBQUEyQztBQUU1QixTQUFTQztJQUN0QkQseURBQVFBLENBQUM7QUFDWCIsInNvdXJjZXMiOlsid2VicGFjazovL3ZlbnQtZnJvbnRlbmQvLi9zcmMvYXBwL3BhZ2UudHN4P2Y2OGEiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgcmVkaXJlY3QgfSBmcm9tIFwibmV4dC9uYXZpZ2F0aW9uXCI7XHJcblxyXG5leHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBIb21lUGFnZSgpIHtcclxuICByZWRpcmVjdChcIi9sb2dpblwiKTtcclxufVxyXG5cclxuIl0sIm5hbWVzIjpbInJlZGlyZWN0IiwiSG9tZVBhZ2UiXSwic291cmNlUm9vdCI6IiJ9\n//# sourceURL=webpack-internal:///(rsc)/./src/app/page.tsx\n");
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   $$typeof: () => (/* binding */ $$typeof),
+/* harmony export */   __esModule: () => (/* binding */ __esModule),
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! next/dist/build/webpack/loaders/next-flight-loader/module-proxy */ "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-loader/module-proxy.js");
+
+const proxy = (0,next_dist_build_webpack_loaders_next_flight_loader_module_proxy__WEBPACK_IMPORTED_MODULE_0__.createProxy)(String.raw`C:\Users\JerryChng.YingJie\OneDrive - Aspect Maintenance Services Ltd\Desktop\vent-frontend\src\app\page.tsx`)
+
+// Accessing the __esModule property and exporting $$typeof are required here.
+// The __esModule getter forces the proxy target to create the default export
+// and the $$typeof value is for rendering logic to determine if the module
+// is a client boundary.
+const { __esModule, $$typeof } = proxy;
+const __default__ = proxy.default;
+
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__default__);
 
 /***/ }),
 

@@ -243,7 +243,7 @@ export default function TemplatesPage() {
       </Card>
 
       <Dialog open={!!viewDetail} onOpenChange={(open) => !open && setViewDetail(null)}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto rounded-[12px]">
           <DialogHeader>
             <DialogTitle>{viewDetail?.name ?? "Template"}</DialogTitle>
           </DialogHeader>

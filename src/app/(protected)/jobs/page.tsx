@@ -27,6 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Plus } from "lucide-react";
 
 export default function JobsPage() {
   const { user, loading } = useAuth();
@@ -134,7 +135,14 @@ export default function JobsPage() {
         <h1 className="text-2xl font-semibold">Jobs</h1>
         {canManageJobs && (
           <Button variant={showForm ? "outline" : "default"} onClick={() => setShowForm((v) => !v)}>
-            {showForm ? "Cancel" : "Create job"}
+            {showForm ? (
+              "Cancel"
+            ) : (
+              <>
+                <Plus className="h-4 w-4" />
+                Create job
+              </>
+            )}
           </Button>
         )}
       </div>
@@ -237,7 +245,14 @@ export default function JobsPage() {
             </div>
 
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Creating..." : "Create job"}
+              {submitting ? (
+                "Creating..."
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  Create job
+                </>
+              )}
             </Button>
           </form>
         </Card>

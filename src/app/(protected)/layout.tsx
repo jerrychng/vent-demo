@@ -39,6 +39,11 @@ function SidebarContent({
   onNavClick?: () => void;
   onLogout: () => void;
 }) {
+  const roleLabel = user.role
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+
   return (
     <>
       <div className="mb-6">
@@ -54,7 +59,7 @@ function SidebarContent({
         </div>
         <h1 className="text-lg font-semibold">Job Management System</h1>
         <p className="text-xs mt-1">{user.full_name}</p>
-        <p className="text-[11px] uppercase text-muted-foreground/80">{user.role}</p>
+        <p className="text-[11px] uppercase text-muted-foreground/80">{roleLabel}</p>
       </div>
       <nav className="flex-1 space-y-1 text-sm">
         <Link href="/dashboard" onClick={onNavClick}>
@@ -162,14 +167,6 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
               </div>
             </SheetContent>
           </Sheet>
-          <Image
-            src="/assets/aspect-logo-primary.svg"
-            alt="Aspect Maintenance Services"
-            width={140}
-            height={27}
-            className="h-7 w-auto object-contain"
-            priority
-          />
         </header>
         <main className="flex-1 p-4 md:p-6 overflow-auto">{children}</main>
       </div>

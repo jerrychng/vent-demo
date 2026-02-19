@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Plus } from "lucide-react";
 
 export default function SitesPage() {
   const { user, loading } = useAuth();
@@ -110,7 +111,14 @@ export default function SitesPage() {
         <h1 className="text-2xl font-semibold">Sites</h1>
         {canManageSites && (
           <Button variant={showForm ? "outline" : "default"} onClick={() => setShowForm((v) => !v)}>
-            {showForm ? "Cancel" : "Create site"}
+            {showForm ? (
+              "Cancel"
+            ) : (
+              <>
+                <Plus className="h-4 w-4" />
+                Create site
+              </>
+            )}
           </Button>
         )}
       </div>
@@ -163,7 +171,14 @@ export default function SitesPage() {
                 </div>
               </div>
               <Button type="submit" disabled={submitting}>
-                {submitting ? "Creating..." : "Create site"}
+                {submitting ? (
+                  "Creating..."
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4" />
+                    Create site
+                  </>
+                )}
               </Button>
             </form>
           </CardContent>
@@ -217,7 +232,7 @@ export default function SitesPage() {
       </Card>
 
       <Dialog open={!!viewDetail} onOpenChange={(open) => !open && setViewDetail(null)}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto rounded-[12px]">
           <DialogHeader>
             <DialogTitle>
               {viewDetail?.site_name ?? viewDetail?.client_name ?? "Site"}

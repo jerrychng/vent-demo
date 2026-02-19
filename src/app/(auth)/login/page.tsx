@@ -40,8 +40,8 @@ export default function LoginPage() {
     <main className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#27549d] via-[#4f71b7] to-[#9eb3dc] px-4 py-10 flex items-center justify-center">
       <Card className="relative z-10 w-full max-w-sm rounded-[12px] border border-[#D8E6FF] bg-white/50 text-[#17325e] backdrop-blur-[4px] shadow-2xl">
         <CardHeader>
-          <CardTitle>Vent Hygiene System Login</CardTitle>
-          <CardDescription className="text-muted-foreground">Sign in with your account</CardDescription>
+          <CardTitle>Login to your account</CardTitle>
+          {/* <CardDescription className="text-muted-foreground">Sign in with your account</CardDescription> */}
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">

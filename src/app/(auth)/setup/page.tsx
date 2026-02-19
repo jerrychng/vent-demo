@@ -57,7 +57,7 @@ export default function SetupPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && <p className="text-sm text-red-700">{error}</p>}
+            {error && <p className="text-sm font-medium text-destructive" role="alert">{error}</p>}
             <div className="space-y-2">
               <Label htmlFor="full_name" className="text-[#17325e]">Full name</Label>
               <div className="relative">

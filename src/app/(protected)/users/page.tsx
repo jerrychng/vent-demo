@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Plus } from "lucide-react";
 
 export default function EngineerPage() {
   const { user, loading } = useAuth();
@@ -106,7 +107,14 @@ export default function EngineerPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Engineers</h1>
         <Button variant={showForm ? "outline" : "default"} onClick={() => setShowForm((v) => !v)}>
-          {showForm ? "Cancel" : "Create engineer"}
+          {showForm ? (
+            "Cancel"
+          ) : (
+            <>
+              <Plus className="h-4 w-4" />
+              Create engineer
+            </>
+          )}
         </Button>
       </div>
 
@@ -155,7 +163,14 @@ export default function EngineerPage() {
                 </div>
               </div>
               <Button type="submit" disabled={submitting}>
-                {submitting ? "Creating..." : "Create engineer"}
+                {submitting ? (
+                  "Creating..."
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4" />
+                    Create engineer
+                  </>
+                )}
               </Button>
             </form>
           </CardContent>
@@ -203,7 +218,7 @@ export default function EngineerPage() {
       </Card>
 
       <Dialog open={!!viewDetail} onOpenChange={(open) => !open && setViewDetail(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md rounded-[12px]">
           <DialogHeader>
             <DialogTitle>{viewDetail?.full_name ?? "Engineer"}</DialogTitle>
           </DialogHeader>
