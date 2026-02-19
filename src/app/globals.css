@@ -1,0 +1,226 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "./overrides.css";
+
+:root {
+  --color-primary: #27549d;
+  --color-dark-primary: #17325e;
+  --color-text-body: #323843;
+  --color-text-dark-gray: #646f86;
+  --color-subtle: #dee8f7;
+  --color-bg-bakground: #f7f9fd;
+  --color-border-dark: #4c5566;
+  --color-background: #f7f9fd;
+  --color-secondary: #7099db;
+  --color-accent: #f1ff24;
+  --color-dark-accent: #98a32b;
+  --color-gray: #cdd1da;
+  --color-light-gray: #f3f4f6;
+  --color-light-green: #ebfaed;
+  --color-highlight-green: #2eb844;
+  --color-dark-green: #1c6e29;
+  --color-orange: #a35c0a;
+  --color-highlight-orange: #f29630;
+  --color-light-orange: #fef5ec;
+  --color-highlight-red: #d15134;
+  --color-light-red: #faedea;
+  --color-dark-red: #812f1d;
+  --color-red: #d15134;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --font-sans: Montserrat, Helvetica, Arial, sans-serif;
+  --font-family-light: "mont-light";
+  --font-weight-light: 300;
+  --letter-spacing-base: 0.2px;
+  --radius: 0.625rem;
+
+  /* shadcn/ui semantic variables (mapped to design tokens) */
+  --background: var(--color-bg-bakground);
+  --foreground: var(--color-text-body);
+  --card: #ffffff;
+  --card-foreground: var(--color-text-body);
+  --popover: #ffffff;
+  --popover-foreground: var(--color-text-body);
+  --primary: var(--color-primary);
+  --primary-foreground: #ffffff;
+  --secondary: var(--color-subtle);
+  --secondary-foreground: var(--color-dark-primary);
+  --muted: var(--color-light-gray);
+  --muted-foreground: var(--color-text-dark-gray);
+  --accent: var(--color-accent);
+  --accent-foreground: var(--color-dark-primary);
+  --destructive: var(--color-highlight-red);
+  --destructive-foreground: #ffffff;
+  --border: var(--color-gray);
+  --input: var(--color-gray);
+  --ring: var(--color-primary);
+  --sidebar: var(--color-dark-primary);
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: var(--color-primary);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--color-subtle);
+  --sidebar-accent-foreground: var(--color-dark-primary);
+  --sidebar-border: var(--color-border-dark);
+
+  color: #323843;
+  background-color: var(--color-bg-bakground);
+  font-family: "mont-regular", Helvetica, Arial, sans-serif;
+}
+
+body {
+  color: var(--color-text-body);
+  background-color: var(--color-bg-bakground);
+  font-family: "mont-regular", Helvetica, Arial, sans-serif;
+}
+
+/* --- CUSTOM FONT FACES --- */
+/* Font files in public/fonts/ (e.g. public/fonts/MontRegular/MontRegular.woff) */
+@font-face {
+  font-family: "mont-regular";
+  src: url("/fonts/MontRegular/MontRegular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "mont-light";
+  src: url("/fonts/MontLight/MontLight.woff") format("woff");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "mont-semi-bold";
+  src: url("/fonts/MontSemiBold/MontSemiBold.woff") format("woff");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "mont-bold";
+  src: url("/fonts/MontBold/MontBold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* --- SONNER TOAST STYLES --- */
+[data-sonner-toast][data-type="error"] {
+  background: #faedea !important;
+  color: #812f1d !important;
+  border: 1px solid #d15134 !important;
+}
+[data-sonner-toast][data-type="success"] {
+  background: #f7f9fd !important;
+  color: #17325e !important;
+  border: 1px solid #27549d !important;
+}
+[data-sonner-toast][data-type="warning"] {
+  background: #fef5ec !important;
+  color: #a35c0a !important;
+  border: 1px solid #f29630 !important;
+}
+[data-sonner-toast][data-type="info"] {
+  background: #f7f9fd !important;
+  color: #17325e !important;
+  border: 1px solid #27549d !important;
+}
+[data-sonner-toast] [data-close-button] {
+  background-color: white !important;
+  border: none !important;
+  color: #323843 !important;
+  opacity: 1 !important;
+}
+[data-sonner-toast] [data-close-button]:hover {
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+}
+[data-sonner-toast] [data-close-button] svg {
+  color: #323843 !important;
+}
+
+/* --- CUSTOM KEYFRAMES --- */
+@keyframes ping-modest {
+  75%,
+  100% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
+}
+
+@layer utilities {
+  .font-light {
+    font-family: "mont-light";
+    font-weight: 300;
+  }
+  .font-bold {
+    font-family: "mont-bold";
+    font-weight: 700;
+  }
+  .font-semibold {
+    font-family: "mont-semi-bold";
+    font-weight: 600;
+  }
+  .font-regular {
+    font-family: "mont-regular";
+    font-weight: 400;
+  }
+  .animate-ping-modest {
+    animation: ping-modest 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+}
+
+@layer base {
+  @media (max-width: 639px) {
+    html {
+      font-size: 14px;
+    }
+    body {
+      font-size: 0.875rem;
+    }
+    h1 {
+      font-size: 1.5rem;
+    }
+    h2 {
+      font-size: 1.25rem;
+    }
+    h3 {
+      font-size: 1.125rem;
+    }
+    p {
+      font-size: 0.875rem;
+    }
+    button {
+      font-size: 0.875rem;
+    }
+  }
+  :root {
+    --sidebar-background: 217 60% 38%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 217 60% 38%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+  .dark {
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}

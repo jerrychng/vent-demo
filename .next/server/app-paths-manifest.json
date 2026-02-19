@@ -1,0 +1,10 @@
+{
+  "/(auth)/setup/page": "app/(auth)/setup/page.js",
+  "/(auth)/login/page": "app/(auth)/login/page.js",
+  "/(protected)/dashboard/page": "app/(protected)/dashboard/page.js",
+  "/(protected)/jobs/page": "app/(protected)/jobs/page.js",
+  "/(protected)/templates/page": "app/(protected)/templates/page.js",
+  "/(protected)/jobs/[id]/page": "app/(protected)/jobs/[id]/page.js",
+  "/(protected)/users/page": "app/(protected)/users/page.js",
+  "/(protected)/sites/page": "app/(protected)/sites/page.js"
+}
