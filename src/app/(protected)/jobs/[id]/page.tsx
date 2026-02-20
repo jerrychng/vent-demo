@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeftIcon } from "lucide-react";
 
 export default function JobDetailPage() {
   const params = useParams<{ id: string }>();
@@ -97,7 +98,7 @@ export default function JobDetailPage() {
   return (
     <div className="space-y-4">
       <Button variant="ghost" size="sm" onClick={() => router.push("/jobs")} className="text-muted-foreground">
-        {"<-"} Back to Jobs
+        <ArrowLeftIcon className="w-4 h-4 mr-2" /> Back to Jobs
       </Button>
 
       <Card>

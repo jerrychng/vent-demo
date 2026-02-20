@@ -2,14 +2,19 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import EngineerBottomBar from "@/app/(protected)/components/EngineerBottomBar";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
-  Bell,
-  Settings,
+  ArrowLeft,
+  Circle,
   User,
+  Phone,
+  Mail,
+  MapPin,
+  Ellipsis,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -24,10 +29,11 @@ const quickActions = [
 ];
 
 export default function EngineerHomePage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     if (user && user.role !== "engineer") {
@@ -57,6 +63,97 @@ export default function EngineerHomePage() {
     setIsPlaying(false);
   }
 
+  function handleLogout() {
+    logout();
+    router.replace("/login");
+  }
+
+  if (profileOpen) {
+    return (
+      <>
+        <div
+          className="bg-white p-4 pb-32"
+          style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
+        >
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={() => setProfileOpen(false)}
+              className="inline-flex items-center gap-2 text-[#27549d]"
+            >
+              <ArrowLeft className="h-6 w-6" />
+              <span className="text-2xl font-semibold">Profile</span>
+            </button>
+           
+          </div>
+
+          <div className="rounded-[12px] border border-[#d8e6ff] bg-[linear-gradient(180deg,_#F6FAFF_0%,_#FFFFFF_100%)] p-5 shadow-[0_2px_8px_rgba(39,84,157,0.06)]">
+            <div className="mb-4 flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-[#bfd5ff] bg-[#d8e6ff]">
+                  <div className="flex h-full w-full items-center justify-center text-[#3555a5]">
+                    <User className="h-7 w-7" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xl font-semibold text-[#243b73]">{user.full_name}</p>
+                  <p className="text-base text-[#6d7690]">Technician</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-lg font-semibold text-[#2f3d57]">About</p>
+              <span className="inline-flex items-center rounded-[8px] border border-[#8bb2ff] px-3 py-1 text-sm font-medium text-[#3f6ed3]">
+                <Circle className="mr-1 h-2 w-2 fill-current stroke-current" />
+                Active
+              </span>
+            </div>
+
+            <div className="space-y-3 text-base text-[#4f5f7c]">
+              <p className="inline-flex items-center gap-2">
+                <Phone className="h-4 w-4 text-[#6f7d97]" />
+                Phone: Not provided
+              </p>
+              <p className="inline-flex items-center gap-2 break-all">
+                <Mail className="h-4 w-4 text-[#6f7d97]" />
+                Email: {user.email}
+              </p>
+            </div>
+
+            <hr className="my-5 border-[#e4edff]" />
+
+            <div>
+              <p className="mb-3 text-lg font-semibold text-[#2f3d57]">Address</p>
+              <p className="inline-flex items-start gap-2 text-base leading-6 text-[#4f5f7c]">
+                <MapPin className="mt-1 h-4 w-4 text-[#6f7d97]" />
+                Address not provided
+              </p>
+            </div>
+
+            <hr className="my-5 border-[#e4edff]" />
+
+            <div>
+              <p className="mb-3 text-lg font-semibold text-[#2f3d57]">System information</p>
+              <p className="inline-flex items-center gap-2 text-base text-[#4f5f7c]">
+                <User className="h-4 w-4 text-[#6f7d97]" />
+                Created by: Aspect Admin
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex w-full justify-end">
+            <Button type="button" variant="destructive" onClick={handleLogout}>
+              Logout
+            </Button>
+          </div>
+        </div>
+
+        <EngineerBottomBar active="home" />
+      </>
+    );
+  }
+
   return (
     <>
      {/* <div className="mx-auto w-full max-w-md space-y-4 pb-32"> */}
@@ -65,10 +162,21 @@ export default function EngineerHomePage() {
           <p className="text-2xl font-semibold text-[#27549d]">
             Welcome <span className="text-[#17325e]">to Aspect!</span>
           </p>
-          <div className="flex items-center gap-3 text-[#27549d]">
-            <Bell className="h-5 w-5" />
-            <User className="h-5 w-5" />
-            <Settings className="h-5 w-5" />
+          <div className="flex items-center text-[#27549d]">
+            <button
+              type="button"
+              aria-label="Open profile"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md p-0 hover:bg-[#ecf2ff]"
+              onClick={() => setProfileOpen(true)}
+            >
+              <Image
+                src="/assets/profile.svg"
+                alt="Profile"
+                width={26}
+                height={26}
+                className="h-[26px] w-[26px]"
+              />
+            </button>
           </div>
         </div>
 
