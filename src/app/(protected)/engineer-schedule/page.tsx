@@ -60,8 +60,8 @@ export default function EngineerSchedulePage() {
   }, [user, router]);
 
   const filteredJobs = useMemo(() => {
-    const ownScheduledJobs = jobs.filter((job) => job.engineer?.id === user?.id && Boolean(job.scheduled_date));
-    const sorted = [...ownScheduledJobs].sort((a, b) => {
+    const ownJobs = jobs.filter((job) => job.engineer?.id === user?.id);
+    const sorted = [...ownJobs].sort((a, b) => {
       const aTime = a.scheduled_date ? new Date(a.scheduled_date).getTime() : Number.MAX_SAFE_INTEGER;
       const bTime = b.scheduled_date ? new Date(b.scheduled_date).getTime() : Number.MAX_SAFE_INTEGER;
       if (aTime !== bTime) return aTime - bTime;

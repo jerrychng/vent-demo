@@ -419,6 +419,41 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
     if (!job) throw new Error("Job not found");
     return job;
   }
+  if (jobIdMatch && method === "PUT") {
+    const id = jobIdMatch[1];
+    const job = mockJobDetails[id];
+    if (!job) throw new Error("Job not found");
+
+    const { title, description, status, scheduled_date, engineer_id } = body as {
+      title?: string;
+      description?: string | null;
+      status?: JobDetail["status"];
+      scheduled_date?: string | null;
+      engineer_id?: number | null;
+    };
+
+    if (title !== undefined) job.title = String(title).trim() || job.title;
+    if (description !== undefined) job.description = description === null ? null : String(description);
+    if (status !== undefined) job.status = status;
+    if (scheduled_date !== undefined) job.scheduled_date = scheduled_date || null;
+
+    if (engineer_id !== undefined) {
+      const engineer =
+        engineer_id === null
+          ? null
+          : users.find((u) => u.id === Number(engineer_id) && u.role === "engineer") ?? null;
+      job.engineer = engineer ? { id: engineer.id, full_name: engineer.full_name } : null;
+    }
+
+    job.updated_at = now();
+    return job;
+  }
+  if (jobIdMatch && method === "DELETE") {
+    const id = jobIdMatch[1];
+    if (!mockJobDetails[id]) throw new Error("Job not found");
+    delete mockJobDetails[id];
+    return {};
+  }
 
   // POST /jobs/:id/approve
   const approveMatch = pathname.match(/^\/jobs\/(\d+)\/approve$/);
@@ -474,6 +509,47 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
     const site = mockSites.find((s) => s.id === id);
     if (!site) throw new Error("Site not found");
     return site;
+  }
+  if (siteIdMatch && method === "PUT") {
+    const id = parseInt(siteIdMatch[1], 10);
+    const site = mockSites.find((s) => s.id === id);
+    if (!site) throw new Error("Site not found");
+    const {
+      client_name,
+      site_name,
+      address_line_1,
+      address_line_2,
+      city,
+      postcode,
+      contact_name,
+      contact_phone,
+      contact_email,
+      notes
+    } = body;
+    if (client_name !== undefined && String(client_name).trim()) site.client_name = String(client_name).trim();
+    if (site_name !== undefined) site.site_name = site_name ? String(site_name) : null;
+    if (address_line_1 !== undefined && String(address_line_1).trim()) site.address_line_1 = String(address_line_1).trim();
+    if (address_line_2 !== undefined) site.address_line_2 = address_line_2 ? String(address_line_2) : null;
+    if (city !== undefined && String(city).trim()) site.city = String(city).trim();
+    if (postcode !== undefined && String(postcode).trim()) site.postcode = String(postcode).trim();
+    if (contact_name !== undefined) site.contact_name = contact_name ? String(contact_name) : null;
+    if (contact_phone !== undefined) site.contact_phone = contact_phone ? String(contact_phone) : null;
+    if (contact_email !== undefined) site.contact_email = contact_email ? String(contact_email) : null;
+    if (notes !== undefined) site.notes = notes ? String(notes) : null;
+    site.updated_at = now();
+    return site;
+  }
+  if (siteIdMatch && method === "DELETE") {
+    const id = parseInt(siteIdMatch[1], 10);
+    const idx = mockSites.findIndex((s) => s.id === id);
+    if (idx < 0) throw new Error("Site not found");
+    mockSites.splice(idx, 1);
+    for (const key of Object.keys(mockJobDetails)) {
+      if (mockJobDetails[key].site.id === id) {
+        delete mockJobDetails[key];
+      }
+    }
+    return {};
   }
 
   // POST /sites
@@ -534,6 +610,67 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       created_at: t.created_at,
       areas
     };
+  }
+  if (templateIdMatch && method === "PUT") {
+    const id = parseInt(templateIdMatch[1], 10);
+    const t = mockTemplates.find((x) => x.id === id);
+    if (!t) throw new Error("Template not found");
+
+    const { name, description, is_active, areas } = body as {
+      name?: string;
+      description?: string | null;
+      is_active?: boolean;
+      areas?: Array<{ name?: string; order_index?: number; photo_guidance?: string | null }>;
+    };
+
+    if (name !== undefined && String(name).trim()) t.name = String(name).trim();
+    if (description !== undefined) t.description = description === null ? null : String(description);
+    if (is_active !== undefined) t.is_active = Boolean(is_active);
+    if (Array.isArray(areas)) {
+      const areaList = areas
+        .filter((a) => String(a.name ?? "").trim())
+        .map((a, i) => ({
+          id: nextAreaId++,
+          template_id: id,
+          name: String(a.name).trim(),
+          description: null,
+          order_index:
+            typeof a.order_index === "number" && Number.isFinite(a.order_index) && a.order_index > 0
+              ? Math.floor(a.order_index)
+              : i + 1,
+          photo_guidance: a.photo_guidance != null ? String(a.photo_guidance).trim() || null : null,
+          created_at: now(),
+        })) satisfies TemplateArea[];
+
+      for (let i = mockTemplateAreas.length - 1; i >= 0; i--) {
+        if (mockTemplateAreas[i].template_id === id) {
+          mockTemplateAreas.splice(i, 1);
+        }
+      }
+      mockTemplateAreas.push(...areaList);
+      t.areas = areaList;
+      t.area_count = areaList.length;
+    }
+    return {
+      id: t.id,
+      name: t.name,
+      description: t.description,
+      area_count: t.area_count,
+      is_active: t.is_active,
+      created_at: t.created_at
+    };
+  }
+  if (templateIdMatch && method === "DELETE") {
+    const id = parseInt(templateIdMatch[1], 10);
+    const idx = mockTemplates.findIndex((x) => x.id === id);
+    if (idx < 0) throw new Error("Template not found");
+    mockTemplates.splice(idx, 1);
+    for (let i = mockTemplateAreas.length - 1; i >= 0; i--) {
+      if (mockTemplateAreas[i].template_id === id) {
+        mockTemplateAreas.splice(i, 1);
+      }
+    }
+    return {};
   }
 
   // POST /templates
@@ -596,6 +733,49 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
     const u = users.find((x) => x.id === id);
     if (!u) throw new Error("User not found");
     return { id: u.id, email: u.email, full_name: u.full_name, role: u.role, is_active: u.is_active, created_at: u.created_at, updated_at: u.updated_at };
+  }
+  if (userIdMatch && method === "PUT") {
+    const id = parseInt(userIdMatch[1], 10);
+    const u = users.find((x) => x.id === id);
+    if (!u) throw new Error("User not found");
+
+    const { email, full_name, is_active } = body as {
+      email?: string;
+      full_name?: string;
+      is_active?: boolean;
+    };
+
+    if (email !== undefined && String(email).trim()) u.email = String(email).trim();
+    if (full_name !== undefined && String(full_name).trim()) u.full_name = String(full_name).trim();
+    if (is_active !== undefined) u.is_active = Boolean(is_active);
+    u.updated_at = now();
+
+    for (const job of Object.values(mockJobDetails)) {
+      if (job.engineer?.id === u.id) {
+        if (u.is_active && u.role === "engineer") {
+          job.engineer = { id: u.id, full_name: u.full_name };
+        } else {
+          job.engineer = null;
+        }
+      }
+    }
+
+    return { id: u.id, email: u.email, full_name: u.full_name, role: u.role, is_active: u.is_active, created_at: u.created_at, updated_at: u.updated_at };
+  }
+  if (userIdMatch && method === "DELETE") {
+    const id = parseInt(userIdMatch[1], 10);
+    const idx = users.findIndex((x) => x.id === id);
+    if (idx < 0) throw new Error("User not found");
+    users.splice(idx, 1);
+
+    for (const [storedToken, storedUser] of tokenToUser.entries()) {
+      if (storedUser.id === id) tokenToUser.delete(storedToken);
+    }
+
+    for (const job of Object.values(mockJobDetails)) {
+      if (job.engineer?.id === id) job.engineer = null;
+    }
+    return {};
   }
 
   // POST /users

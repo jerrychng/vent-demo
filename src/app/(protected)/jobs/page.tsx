@@ -1,12 +1,15 @@
 "use client";
 
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { toast } from "@/hooks/use-toast";
 import type {
+  JobDetail,
   JobRow,
   JobsResponse,
+  JobStatus,
   SiteListItem,
   SitesResponse,
   TemplateListItem,
@@ -19,6 +22,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -38,6 +47,12 @@ export default function JobsPage() {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"all" | JobStatus>("all");
+  const [sortOrder, setSortOrder] = useState<"recent" | "old">("recent");
+  const [editingJob, setEditingJob] = useState<JobRow | null>(null);
+  const [deletingJob, setDeletingJob] = useState<JobRow | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const router = useRouter();
 
   const canManageJobs = user?.role === "super_admin" || user?.role === "trade_manager";
@@ -48,6 +63,13 @@ export default function JobsPage() {
     site_id: "",
     template_id: "",
     engineer_id: "",
+    scheduled_date: "",
+  });
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    engineer_id: "",
+    status: "assigned" as JobStatus,
     scheduled_date: "",
   });
 
@@ -84,11 +106,6 @@ export default function JobsPage() {
     event.preventDefault();
     setError(null);
 
-    if (!form.engineer_id) {
-      setError("Please assign an engineer before creating a job");
-      return;
-    }
-
     setSubmitting(true);
 
     try {
@@ -99,12 +116,14 @@ export default function JobsPage() {
           description: form.description.trim() || null,
           site_id: Number(form.site_id),
           template_id: Number(form.template_id),
-          engineer_id: Number(form.engineer_id),
+          engineer_id: form.engineer_id ? Number(form.engineer_id) : null,
           scheduled_date: form.scheduled_date || null,
         }),
       });
 
       await loadJobs();
+      const t = toast({ title: "Job created successfully." });
+      setTimeout(() => t.dismiss(), 4000);
       setShowForm(false);
       setForm({
         title: "",
@@ -120,6 +139,82 @@ export default function JobsPage() {
       setSubmitting(false);
     }
   }
+
+  async function openEditJob(job: JobRow) {
+    setError(null);
+    try {
+      const detail = await apiFetch<JobDetail>(`/jobs/${job.id}`);
+      setEditingJob(job);
+      setEditForm({
+        title: detail.title,
+        description: detail.description ?? "",
+        engineer_id: detail.engineer?.id ? String(detail.engineer.id) : "",
+        status: detail.status,
+        scheduled_date: detail.scheduled_date ?? "",
+      });
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load job for editing");
+    }
+  }
+
+  async function handleUpdateJob(event: FormEvent) {
+    event.preventDefault();
+    if (!editingJob) return;
+    setError(null);
+    setSavingEdit(true);
+    try {
+      await apiFetch(`/jobs/${editingJob.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          title: editForm.title.trim(),
+          description: editForm.description.trim() || null,
+          engineer_id: editForm.engineer_id ? Number(editForm.engineer_id) : null,
+          status: editForm.status,
+          scheduled_date: editForm.scheduled_date || null,
+        }),
+      });
+      await loadJobs();
+      const t = toast({ title: "Job updated successfully." });
+      setTimeout(() => t.dismiss(), 4000);
+      setEditingJob(null);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to update job");
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
+  async function handleDeleteJob() {
+    if (!deletingJob) return;
+    setError(null);
+    setDeleting(true);
+    try {
+      await apiFetch(`/jobs/${deletingJob.id}`, { method: "DELETE" });
+      await loadJobs();
+      const t = toast({ title: "Job deleted successfully." });
+      setTimeout(() => t.dismiss(), 4000);
+      setDeletingJob(null);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to delete job");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  const visibleJobs = useMemo(() => {
+    const filtered =
+      statusFilter === "all"
+        ? jobs
+        : jobs.filter((job) => job.status === statusFilter);
+
+    return [...filtered].sort((a, b) => {
+      const aTime = Date.parse(a.created_at);
+      const bTime = Date.parse(b.created_at);
+      const safeATime = Number.isNaN(aTime) ? 0 : aTime;
+      const safeBTime = Number.isNaN(bTime) ? 0 : bTime;
+      return sortOrder === "recent" ? safeBTime - safeATime : safeATime - safeBTime;
+    });
+  }, [jobs, statusFilter, sortOrder]);
 
   if (loading || !user) {
     return (
@@ -219,12 +314,11 @@ export default function JobsPage() {
                 <Label htmlFor="job-engineer">Engineer</Label>
                 <select
                   id="job-engineer"
-                  required
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={form.engineer_id}
                   onChange={(e) => setForm((f) => ({ ...f, engineer_id: e.target.value }))}
                 >
-                  <option value="">Select engineer</option>
+                  <option value="">Unassigned (Draft)</option>
                   {engineers.map((engineer) => (
                     <option key={engineer.id} value={engineer.id}>
                       {engineer.full_name}
@@ -258,6 +352,41 @@ export default function JobsPage() {
         </Card>
       )}
 
+      <Card className="p-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="job-status-filter">Filter by status</Label>
+            <select
+              id="job-status-filter"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as "all" | JobStatus)}
+            >
+              <option value="all">All statuses</option>
+              <option value="draft">Draft</option>
+              <option value="assigned">Assigned</option>
+              <option value="in_progress">In progress</option>
+              <option value="submitted">Submitted</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="job-sort-order">Sort by</Label>
+            <select
+              id="job-sort-order"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as "recent" | "old")}
+            >
+              <option value="recent">Most recent</option>
+              <option value="old">Oldest</option>
+            </select>
+          </div>
+        </div>
+      </Card>
+
       <Card>
         <Table>
           <TableHeader>
@@ -272,7 +401,7 @@ export default function JobsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {jobs.map((job) => (
+            {visibleJobs.map((job) => (
               <TableRow
                 key={job.id}
                 className="cursor-pointer"
@@ -289,21 +418,48 @@ export default function JobsPage() {
                 <TableCell className="capitalize">{job.status.replace("_", " ")}</TableCell>
                 <TableCell>{job.scheduled_date ?? "-"}</TableCell>
                 <TableCell className="text-right">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="bg-accent text-accent-foreground hover:bg-accent/90"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      router.push(`/jobs/${job.id}`);
-                    }}
-                  >
-                    View
-                  </Button>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="bg-accent text-accent-foreground hover:bg-accent/90"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        router.push(`/jobs/${job.id}`);
+                      }}
+                    >
+                      View
+                    </Button>
+                    {canManageJobs && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="hover:bg-transparent hover:text-foreground"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openEditJob(job);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setDeletingJob(job);
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
-            {jobs.length === 0 && !error && (
+            {visibleJobs.length === 0 && !error && (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                   No jobs found.
@@ -313,6 +469,104 @@ export default function JobsPage() {
           </TableBody>
         </Table>
       </Card>
+
+      <Dialog open={!!editingJob} onOpenChange={(open) => !open && setEditingJob(null)}>
+        <DialogContent className="max-w-lg rounded-[12px]">
+          <DialogHeader>
+            <DialogTitle>Edit job</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateJob} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-job-title">Title</Label>
+              <Input
+                id="edit-job-title"
+                required
+                value={editForm.title}
+                onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-job-description">Description</Label>
+              <Textarea
+                id="edit-job-description"
+                value={editForm.description}
+                onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-job-engineer">Engineer</Label>
+                <select
+                  id="edit-job-engineer"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={editForm.engineer_id}
+                  onChange={(e) => setEditForm((f) => ({ ...f, engineer_id: e.target.value }))}
+                >
+                  <option value="">Unassigned</option>
+                  {engineers.map((engineer) => (
+                    <option key={engineer.id} value={engineer.id}>
+                      {engineer.full_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-job-status">Status</Label>
+                <select
+                  id="edit-job-status"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={editForm.status}
+                  onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value as JobStatus }))}
+                >
+                  <option value="draft">Draft</option>
+                  <option value="assigned">Assigned</option>
+                  <option value="in_progress">In progress</option>
+                  <option value="submitted">Submitted</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-job-scheduled-date">Scheduled date</Label>
+              <Input
+                id="edit-job-scheduled-date"
+                type="date"
+                value={editForm.scheduled_date}
+                onChange={(e) => setEditForm((f) => ({ ...f, scheduled_date: e.target.value }))}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setEditingJob(null)} disabled={savingEdit}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={savingEdit}>
+                {savingEdit ? "Saving..." : "Save changes"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deletingJob} onOpenChange={(open) => !open && setDeletingJob(null)}>
+        <DialogContent className="max-w-md rounded-[12px]">
+          <DialogHeader>
+            <DialogTitle>Delete job</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete {deletingJob?.reference ?? "this job"}?
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => setDeletingJob(null)} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button type="button" variant="destructive" onClick={handleDeleteJob} disabled={deleting}>
+              {deleting ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

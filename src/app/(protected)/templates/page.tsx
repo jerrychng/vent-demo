@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { toast } from "@/hooks/use-toast";
 import type { TemplateDetail, TemplateListItem, TemplatesResponse } from "@/types/models";
 import { type FormEvent, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
@@ -22,7 +23,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow, 
 } from "@/components/ui/table";
 
 type AreaRow = { name: string; order_index: number; photo_guidance: string };
@@ -41,6 +42,16 @@ export default function TemplatesPage() {
   const [areas, setAreas] = useState<AreaRow[]>([{ name: "", order_index: 1, photo_guidance: "" }]);
   const [viewDetail, setViewDetail] = useState<TemplateDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<TemplateListItem | null>(null);
+  const [deletingTemplate, setDeletingTemplate] = useState<TemplateListItem | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    description: "",
+    is_active: true,
+  });
+  const [editAreas, setEditAreas] = useState<AreaRow[]>([{ name: "", order_index: 1, photo_guidance: "" }]);
 
   useEffect(() => {
     if (!user) return;
@@ -72,6 +83,8 @@ export default function TemplatesPage() {
     }
     if (areaList.length === 0) {
       setError("Add at least one area");
+      const t = toast({ title: "Ensure at least one area." });
+      setTimeout(() => t.dismiss(), 4000);
       return;
     }
     setSubmitting(true);
@@ -83,13 +96,15 @@ export default function TemplatesPage() {
           description: description.trim() || null,
           areas: areaList.map((a, i) => ({
             name: a.name.trim(),
-            order_index: i + 1,
+            order_index: Number.isFinite(a.order_index) ? a.order_index : i + 1,
             photo_guidance: a.photo_guidance.trim() || null
           }))
         })
       });
       const res = await apiFetch<TemplatesResponse>("/templates");
       setTemplates(res.templates);
+      const t = toast({ title: "Template created successfully." });
+      setTimeout(() => t.dismiss(), 4000);
       setShowForm(false);
       setName("");
       setDescription("");
@@ -101,12 +116,120 @@ export default function TemplatesPage() {
     }
   }
 
+  async function startEditTemplate(template: TemplateListItem) {
+    setError(null);
+    try {
+      const detail = await apiFetch<TemplateDetail>(`/templates/${template.id}`);
+      setEditingTemplate(template);
+      setEditForm({
+        name: detail.name,
+        description: detail.description ?? "",
+        is_active: detail.is_active,
+      });
+      setEditAreas(
+        detail.areas.length > 0
+          ? detail.areas
+              .slice()
+              .sort((a, b) => a.order_index - b.order_index)
+              .map((a) => ({
+                name: a.name ?? "",
+                order_index: a.order_index,
+                photo_guidance: a.photo_guidance ?? "",
+              }))
+          : [{ name: "", order_index: 1, photo_guidance: "" }]
+      );
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load template for editing");
+    }
+  }
+
+  async function handleUpdateTemplate(e: FormEvent) {
+    e.preventDefault();
+    if (!editingTemplate) return;
+    setError(null);
+    const areaList = editAreas.filter((a) => a.name.trim());
+    if (!editForm.name.trim()) {
+      setError("Template name is required");
+      return;
+    }
+    if (areaList.length === 0) {
+      setError("Add at least one area");
+      const t = toast({ title: "Ensure at least one area." });
+      setTimeout(() => t.dismiss(), 4000);
+      return;
+    }
+    setSavingEdit(true);
+    try {
+      await apiFetch(`/templates/${editingTemplate.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          name: editForm.name.trim(),
+          description: editForm.description.trim() || null,
+          is_active: editForm.is_active,
+          areas: areaList.map((a, i) => ({
+            name: a.name.trim(),
+            order_index: Number.isFinite(a.order_index) ? a.order_index : i + 1,
+            photo_guidance: a.photo_guidance.trim() || null,
+          })),
+        }),
+      });
+      const res = await apiFetch<TemplatesResponse>("/templates");
+      setTemplates(res.templates);
+      const t = toast({ title: "Template updated successfully." });
+      setTimeout(() => t.dismiss(), 4000);
+      setEditingTemplate(null);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to update template");
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
+  async function handleDeleteTemplate() {
+    if (!deletingTemplate) return;
+    setError(null);
+    setDeleting(true);
+    try {
+      await apiFetch(`/templates/${deletingTemplate.id}`, { method: "DELETE" });
+      const res = await apiFetch<TemplatesResponse>("/templates");
+      setTemplates(res.templates);
+      const t = toast({ title: "Template deleted successfully." });
+      setTimeout(() => t.dismiss(), 4000);
+      setDeletingTemplate(null);
+      if (viewDetail?.id === deletingTemplate.id) {
+        setViewDetail(null);
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to delete template");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   function addArea() {
     setAreas((prev) => [...prev, { name: "", order_index: prev.length + 1, photo_guidance: "" }]);
   }
 
   function removeArea(i: number) {
-    setAreas((prev) => (prev.length <= 1 ? prev : prev.filter((_, idx) => idx !== i)));
+    setAreas((prev) => {
+      if (prev.length <= 1) {
+        const t = toast({ title: "Ensure at least one area." });
+        setTimeout(() => t.dismiss(), 4000);
+        return prev;
+      }
+      return prev.filter((_, idx) => idx !== i);
+    });
+  }
+
+  function removeEditArea(i: number) {
+    setEditAreas((prev) => {
+      if (prev.length <= 1) {
+        const t = toast({ title: "Ensure at least one area." });
+        setTimeout(() => t.dismiss(), 4000);
+        return prev;
+      }
+      return prev.filter((_, idx) => idx !== i);
+    });
   }
 
   if (loading || !user) {
@@ -168,26 +291,53 @@ export default function TemplatesPage() {
                 </div>
                 <div className="space-y-2">
                   {areas.map((area, i) => (
-                    <div key={i} className="flex flex-wrap gap-2 items-center rounded-md border border-border bg-muted/30 p-3">
-                      <Input
-                        placeholder="Area name"
-                        className="flex-1 min-w-[120px]"
-                        value={area.name}
-                        onChange={(e) =>
-                          setAreas((prev) => prev.map((a, j) => (j === i ? { ...a, name: e.target.value } : a)))
-                        }
-                      />
-                      <Input
-                        placeholder="Photo guidance"
-                        className="flex-1 min-w-[160px]"
-                        value={area.photo_guidance}
-                        onChange={(e) =>
-                          setAreas((prev) => prev.map((a, j) => (j === i ? { ...a, photo_guidance: e.target.value } : a)))
-                        }
-                      />
-                      <Button type="button" variant="outline" size="sm" onClick={() => removeArea(i)}>
-                        Remove
-                      </Button>
+                    <div key={i} className="rounded-md border border-border bg-muted/30 p-3 space-y-2">
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <div className="flex-1 min-w-[120px] space-y-1">
+                          <Label className="text-xs text-muted-foreground">Area Name</Label>
+                          <Input
+                            placeholder="Area name"
+                            value={area.name}
+                            onChange={(e) =>
+                              setAreas((prev) => prev.map((a, j) => (j === i ? { ...a, name: e.target.value } : a)))
+                            }
+                          />
+                        </div>
+                        <div className="w-24 space-y-1">
+                          <Label className="text-xs text-muted-foreground">Order</Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            placeholder="Order"
+                            value={area.order_index}
+                            onChange={(e) =>
+                              setAreas((prev) =>
+                                prev.map((a, j) =>
+                                  j === i
+                                    ? { ...a, order_index: Number.parseInt(e.target.value || "1", 10) || 1 }
+                                    : a
+                                )
+                              )
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Photo Guidance</Label>
+                        <Textarea
+                          placeholder="Photo guidance"
+                          rows={3}
+                          value={area.photo_guidance}
+                          onChange={(e) =>
+                            setAreas((prev) => prev.map((a, j) => (j === i ? { ...a, photo_guidance: e.target.value } : a)))
+                          }
+                        />
+                      </div>
+                      <div className="flex justify-end">
+                        <Button type="button" variant="destructive" size="sm" onClick={() => removeArea(i)}>
+                          Remove
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -208,7 +358,7 @@ export default function TemplatesPage() {
               <TableHead>Description</TableHead>
               <TableHead>Areas</TableHead>
               <TableHead>Active</TableHead>
-              <TableHead className="w-[80px]"></TableHead>
+              <TableHead className="w-[220px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -218,16 +368,37 @@ export default function TemplatesPage() {
                 <TableCell className="max-w-xs truncate text-muted-foreground">{t.description ?? "—"}</TableCell>
                 <TableCell>{t.area_count}</TableCell>
                 <TableCell>{t.is_active ? "Yes" : "No"}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="bg-accent text-accent-foreground hover:bg-accent/90"
-                    disabled={loadingDetail}
-                    onClick={() => openTemplateDetail(t.id)}
-                  >
-                    View
-                  </Button>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="bg-accent text-accent-foreground hover:bg-accent/90"
+                      disabled={loadingDetail}
+                      onClick={() => openTemplateDetail(t.id)}
+                    >
+                      View
+                    </Button>
+                    {canManageTemplates && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="hover:bg-transparent hover:text-foreground"
+                          onClick={() => startEditTemplate(t)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setDeletingTemplate(t)}
+                        >
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -276,6 +447,144 @@ export default function TemplatesPage() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editingTemplate} onOpenChange={(open) => !open && setEditingTemplate(null)}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto rounded-[12px]">
+          <DialogHeader>
+            <DialogTitle>Edit template</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateTemplate} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-template-name">Name</Label>
+              <Input
+                id="edit-template-name"
+                required
+                value={editForm.name}
+                onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-template-description">Description</Label>
+              <Textarea
+                id="edit-template-description"
+                rows={3}
+                value={editForm.description}
+                onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-template-active">Active</Label>
+              <select
+                id="edit-template-active"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={editForm.is_active ? "true" : "false"}
+                onChange={(e) => setEditForm((f) => ({ ...f, is_active: e.target.value === "true" }))}
+              >
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Areas</Label>
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0"
+                  onClick={() => setEditAreas((prev) => [...prev, { name: "", order_index: prev.length + 1, photo_guidance: "" }])}
+                >
+                  + Add area
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {editAreas.map((area, i) => (
+                  <div key={i} className="rounded-md border border-border bg-muted/30 p-3 space-y-2">
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <div className="flex-1 min-w-[120px] space-y-1">
+                        <Label className="text-xs text-muted-foreground">Area Name</Label>
+                        <Input
+                          placeholder="Area name"
+                          value={area.name}
+                          onChange={(e) =>
+                            setEditAreas((prev) => prev.map((a, j) => (j === i ? { ...a, name: e.target.value } : a)))
+                          }
+                        />
+                      </div>
+                      <div className="w-24 space-y-1">
+                        <Label className="text-xs text-muted-foreground">Order</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          placeholder="Order"
+                          value={area.order_index}
+                          onChange={(e) =>
+                            setEditAreas((prev) =>
+                              prev.map((a, j) =>
+                                j === i
+                                  ? { ...a, order_index: Number.parseInt(e.target.value || "1", 10) || 1 }
+                                  : a
+                              )
+                            )
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-muted-foreground">Photo Guidance</Label>
+                      <Textarea
+                        placeholder="Photo guidance"
+                        rows={3}
+                        value={area.photo_guidance}
+                        onChange={(e) =>
+                          setEditAreas((prev) => prev.map((a, j) => (j === i ? { ...a, photo_guidance: e.target.value } : a)))
+                        }
+                      />
+                    </div>
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeEditArea(i)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setEditingTemplate(null)} disabled={savingEdit}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={savingEdit}>
+                {savingEdit ? "Saving..." : "Save changes"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deletingTemplate} onOpenChange={(open) => !open && setDeletingTemplate(null)}>
+        <DialogContent className="max-w-md rounded-[12px]">
+          <DialogHeader>
+            <DialogTitle>Delete template</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete {deletingTemplate?.name ?? "this template"}?
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => setDeletingTemplate(null)} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button type="button" variant="destructive" onClick={handleDeleteTemplate} disabled={deleting}>
+              {deleting ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -4,7 +4,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: "Trade Job System",
+  title: "Vent Hygiene",
   description: "Admin panel for trade maintenance jobs",
   icons: {
     icon: "/assets/aspect-logo-icon.svg"

@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { toast } from "@/hooks/use-toast";
 import type { Site, SiteListItem, SitesResponse } from "@/types/models";
 import { type FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,10 @@ export default function SitesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [viewDetail, setViewDetail] = useState<Site | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [editingSite, setEditingSite] = useState<SiteListItem | null>(null);
+  const [deletingSite, setDeletingSite] = useState<SiteListItem | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [form, setForm] = useState({
     client_name: "",
     site_name: "",
@@ -46,12 +51,28 @@ export default function SitesPage() {
     contact_phone: "",
     contact_email: ""
   });
+  const [editForm, setEditForm] = useState({
+    client_name: "",
+    site_name: "",
+    address_line_1: "",
+    address_line_2: "",
+    city: "",
+    postcode: "",
+    contact_name: "",
+    contact_phone: "",
+    contact_email: ""
+  });
+
+  async function loadSites() {
+    const res = await apiFetch<SitesResponse>("/sites");
+    setSites(res.sites);
+  }
 
   useEffect(() => {
     if (!user) return;
-    apiFetch<SitesResponse>("/sites")
-      .then((res) => setSites(res.sites))
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load sites"));
+    loadSites().catch((err: unknown) => {
+      setError(err instanceof Error ? err.message : "Failed to load sites");
+    });
   }, [user]);
 
   async function openSiteDetail(id: number) {
@@ -86,14 +107,90 @@ export default function SitesPage() {
           contact_email: form.contact_email || null
         })
       });
-      const res = await apiFetch<SitesResponse>("/sites");
-      setSites(res.sites);
+      await loadSites();
+      const t = toast({ title: "Site created successfully." });
+      setTimeout(() => t.dismiss(), 4000);
       setShowForm(false);
       setForm({ client_name: "", site_name: "", address_line_1: "", address_line_2: "", city: "", postcode: "", contact_name: "", contact_phone: "", contact_email: "" });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create site");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function startEditSite(site: SiteListItem) {
+    setError(null);
+    try {
+      const detail = await apiFetch<Site>(`/sites/${site.id}`);
+      setEditingSite(site);
+      setEditForm({
+        client_name: detail.client_name ?? "",
+        site_name: detail.site_name ?? "",
+        address_line_1: detail.address_line_1 ?? "",
+        address_line_2: detail.address_line_2 ?? "",
+        city: detail.city ?? "",
+        postcode: detail.postcode ?? "",
+        contact_name: detail.contact_name ?? "",
+        contact_phone: detail.contact_phone ?? "",
+        contact_email: detail.contact_email ?? ""
+      });
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load site for editing");
+    }
+  }
+
+  async function handleUpdateSite(e: FormEvent) {
+    e.preventDefault();
+    if (!editingSite) return;
+    setError(null);
+    setSavingEdit(true);
+    try {
+      await apiFetch(`/sites/${editingSite.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          client_name: editForm.client_name,
+          site_name: editForm.site_name || null,
+          address_line_1: editForm.address_line_1,
+          address_line_2: editForm.address_line_2 || null,
+          city: editForm.city,
+          postcode: editForm.postcode,
+          contact_name: editForm.contact_name || null,
+          contact_phone: editForm.contact_phone || null,
+          contact_email: editForm.contact_email || null
+        })
+      });
+      await loadSites();
+      const t = toast({ title: "Site updated successfully." });
+      setTimeout(() => t.dismiss(), 4000);
+      setEditingSite(null);
+      if (viewDetail?.id === editingSite.id) {
+        setViewDetail(null);
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to update site");
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
+  async function handleDeleteSite() {
+    if (!deletingSite) return;
+    setError(null);
+    setDeleting(true);
+    try {
+      await apiFetch(`/sites/${deletingSite.id}`, { method: "DELETE" });
+      await loadSites();
+      const t = toast({ title: "Site deleted successfully." });
+      setTimeout(() => t.dismiss(), 4000);
+      setDeletingSite(null);
+      if (viewDetail?.id === deletingSite.id) {
+        setViewDetail(null);
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to delete site");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -193,7 +290,7 @@ export default function SitesPage() {
               <TableHead>Site</TableHead>
               <TableHead>Address</TableHead>
               <TableHead>Jobs</TableHead>
-              <TableHead className="w-[80px]"></TableHead>
+              <TableHead className="w-[220px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -207,16 +304,28 @@ export default function SitesPage() {
                     .join(", ")}
                 </TableCell>
                 <TableCell>{site.job_count ?? 0}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="bg-accent text-accent-foreground hover:bg-accent/90"
-                    disabled={loadingDetail}
-                    onClick={() => openSiteDetail(site.id)}
-                  >
-                    View
-                  </Button>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="bg-accent text-accent-foreground hover:bg-accent/90"
+                      disabled={loadingDetail}
+                      onClick={() => openSiteDetail(site.id)}
+                    >
+                      View
+                    </Button>
+                    {canManageSites && (
+                      <>
+                        <Button variant="outline" size="sm" className="hover:bg-transparent hover:text-foreground" onClick={() => startEditSite(site)}>
+                          Edit
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => setDeletingSite(site)}>
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -267,6 +376,81 @@ export default function SitesPage() {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editingSite} onOpenChange={(open) => !open && setEditingSite(null)}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto rounded-[12px]">
+          <DialogHeader>
+            <DialogTitle>Edit site</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdateSite} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-client_name">Client name <span className="text-destructive">*</span></Label>
+                <Input id="edit-client_name" required value={editForm.client_name} onChange={(e) => setEditForm((f) => ({ ...f, client_name: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-site_name">Site name</Label>
+                <Input id="edit-site_name" value={editForm.site_name} onChange={(e) => setEditForm((f) => ({ ...f, site_name: e.target.value }))} />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="edit-address_line_1">Address line 1 <span className="text-destructive">*</span></Label>
+                <Input id="edit-address_line_1" required value={editForm.address_line_1} onChange={(e) => setEditForm((f) => ({ ...f, address_line_1: e.target.value }))} />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="edit-address_line_2">Address line 2</Label>
+                <Input id="edit-address_line_2" value={editForm.address_line_2} onChange={(e) => setEditForm((f) => ({ ...f, address_line_2: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-city">City <span className="text-destructive">*</span></Label>
+                <Input id="edit-city" required value={editForm.city} onChange={(e) => setEditForm((f) => ({ ...f, city: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-postcode">Postcode <span className="text-destructive">*</span></Label>
+                <Input id="edit-postcode" required value={editForm.postcode} onChange={(e) => setEditForm((f) => ({ ...f, postcode: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-contact_name">Contact name</Label>
+                <Input id="edit-contact_name" value={editForm.contact_name} onChange={(e) => setEditForm((f) => ({ ...f, contact_name: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-contact_phone">Contact phone</Label>
+                <Input id="edit-contact_phone" type="tel" value={editForm.contact_phone} onChange={(e) => setEditForm((f) => ({ ...f, contact_phone: e.target.value }))} />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="edit-contact_email">Contact email</Label>
+                <Input id="edit-contact_email" type="email" value={editForm.contact_email} onChange={(e) => setEditForm((f) => ({ ...f, contact_email: e.target.value }))} />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setEditingSite(null)} disabled={savingEdit}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={savingEdit}>
+                {savingEdit ? "Saving..." : "Save changes"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deletingSite} onOpenChange={(open) => !open && setDeletingSite(null)}>
+        <DialogContent className="max-w-md rounded-[12px]">
+          <DialogHeader>
+            <DialogTitle>Delete site</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete {deletingSite?.site_name ?? deletingSite?.client_name ?? "this site"}?
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => setDeletingSite(null)} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button type="button" variant="destructive" onClick={handleDeleteSite} disabled={deleting}>
+              {deleting ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
