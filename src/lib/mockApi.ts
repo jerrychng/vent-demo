@@ -225,7 +225,7 @@ const mockJobDetails: Record<string, JobDetail> = {
   },
 };
 
-function getJobList(status?: string): JobRow[] {
+function getJobList(status?: string, engineerId?: number): JobRow[] {
   const list: JobRow[] = Object.values(mockJobDetails).map((j) => ({
     id: j.id,
     reference: j.reference,
@@ -243,8 +243,11 @@ function getJobList(status?: string): JobRow[] {
     scheduled_date: j.scheduled_date,
     created_at: j.created_at,
   }));
-  if (status) return list.filter((j) => j.status === status);
-  return list;
+  return list.filter((j) => {
+    if (status && j.status !== status) return false;
+    if (typeof engineerId === "number" && j.engineer?.id !== engineerId) return false;
+    return true;
+  });
 }
 
 async function handleMock(path: string, options: RequestInit = {}): Promise<any> {
@@ -326,11 +329,18 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
     err.status = 401;
     throw err;
   }
+  const currentUser = getUserForToken(token)!;
 
   // GET /jobs
   if (pathname === "/jobs" && method === "GET") {
     const status = params.get("status") || undefined;
-    const jobs = getJobList(status);
+    const engineerParam = params.get("engineer_id");
+    const requestedEngineerId = engineerParam ? Number(engineerParam) : undefined;
+    const engineerId =
+      currentUser.role === "engineer"
+        ? currentUser.id
+        : Number.isFinite(requestedEngineerId) ? requestedEngineerId : undefined;
+    const jobs = getJobList(status, engineerId);
     return { jobs, total: jobs.length };
   }
 
@@ -432,8 +442,6 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
     }
     return {};
   }
-
-  const currentUser = getUserForToken(token)!;
 
   // GET /sites
   if (pathname === "/sites" && method === "GET") {

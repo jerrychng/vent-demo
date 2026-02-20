@@ -1,8 +1,8 @@
 {
-  "/not-found": "app/not-found.js",
-  "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/(auth)/setup/page": "app/(auth)/setup/page.js",
-  "/(protected)/engineer-schedule/page": "app/(protected)/engineer-schedule/page.js",
+  "/(protected)/jobs/[id]/page": "app/(protected)/jobs/[id]/page.js",
+  "/(protected)/users/page": "app/(protected)/users/page.js",
+  "/(protected)/jobs/page": "app/(protected)/jobs/page.js",
+  "/(protected)/templates/page": "app/(protected)/templates/page.js",
   "/(protected)/dashboard/page": "app/(protected)/dashboard/page.js",
-  "/(protected)/engineer-home/page": "app/(protected)/engineer-home/page.js"
+  "/(protected)/sites/page": "app/(protected)/sites/page.js"
 }

@@ -26,20 +26,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(auth)/login/page.js"
     ],
-    "/(auth)/setup/page": [
+    "/(protected)/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(auth)/setup/page.js"
+      "static/chunks/app/(protected)/layout.js"
     ],
     "/(protected)/loading": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(protected)/loading.js"
-    ],
-    "/(protected)/layout": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(protected)/layout.js"
     ],
     "/(protected)/dashboard/page": [
       "static/chunks/webpack.js",
@@ -51,20 +46,25 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(protected)/users/page.js"
     ],
-    "/(protected)/engineer-home/page": [
+    "/(protected)/jobs/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(protected)/engineer-home/page.js"
+      "static/chunks/app/(protected)/jobs/page.js"
+    ],
+    "/(protected)/jobs/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/jobs/[id]/page.js"
+    ],
+    "/(protected)/templates/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(protected)/templates/page.js"
     ],
     "/(protected)/sites/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(protected)/sites/page.js"
-    ],
-    "/(protected)/engineer-schedule/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(protected)/engineer-schedule/page.js"
     ],
     "/not-found": [
       "static/chunks/webpack.js",
