@@ -46,8 +46,6 @@ export default function EngineerPage() {
     full_name: "",
   });
   const [editForm, setEditForm] = useState({
-    email: "",
-    full_name: "",
     is_active: true,
   });
 
@@ -106,8 +104,6 @@ export default function EngineerPage() {
     setError(null);
     setEditingUser(target);
     setEditForm({
-      email: target.email,
-      full_name: target.full_name,
       is_active: target.is_active,
     });
   }
@@ -121,8 +117,6 @@ export default function EngineerPage() {
       await apiFetch(`/users/${editingUser.id}`, {
         method: "PUT",
         body: JSON.stringify({
-          email: editForm.email.trim(),
-          full_name: editForm.full_name.trim(),
           is_active: editForm.is_active,
         }),
       });
@@ -325,25 +319,12 @@ export default function EngineerPage() {
             <DialogTitle>Edit engineer</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleUpdateUser} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-engineer-name">Full name</Label>
-              <Input
-                id="edit-engineer-name"
-                required
-                value={editForm.full_name}
-                onChange={(e) => setEditForm((f) => ({ ...f, full_name: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-engineer-email">Email</Label>
-              <Input
-                id="edit-engineer-email"
-                required
-                type="email"
-                value={editForm.email}
-                onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
-              />
-            </div>
+            {editingUser && (
+              <div className="rounded-md border border-border bg-muted/30 p-3 text-sm space-y-1">
+                <p><span className="font-medium">Engineer:</span> {editingUser.full_name}</p>
+                <p className="text-muted-foreground">{editingUser.email}</p>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="edit-engineer-active">Active</Label>
               <select
