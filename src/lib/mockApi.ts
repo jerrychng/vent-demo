@@ -88,10 +88,10 @@ const mockSites: Site[] = [
     address_line_2: null,
     city: "London",
     postcode: "SW1A 1AA",
-    contact_name: null,
-    contact_phone: null,
-    contact_email: null,
-    notes: null,
+    contact_name: "Site Supervisor A",
+    contact_phone: "07400111222",
+    contact_email: "canarywharf@bigeasy.example",
+    notes: "Access via loading bay before 9:00 AM.",
     created_at: "2026-01-01T00:00:00Z",
     updated_at: now()
   },
@@ -103,10 +103,10 @@ const mockSites: Site[] = [
     address_line_2: "Unit 2",
     city: "Manchester",
     postcode: "M1 2AB",
-    contact_name: null,
-    contact_phone: null,
-    contact_email: null,
-    notes: null,
+    contact_name: "Facilities Manager B",
+    contact_phone: "07400333444",
+    contact_email: "manchester@bigeasy.example",
+    notes: "Report to reception and sign in on arrival.",
     created_at: "2026-01-01T00:00:00Z",
     updated_at: now()
   }
@@ -165,10 +165,10 @@ const mockJobDetails: Record<string, JobDetail> = {
       address_line_2: null,
       city: "London",
       postcode: "SW1A 1AA",
-      contact_name: null,
-      contact_phone: null,
-      contact_email: null,
-      notes: null,
+      contact_name: "Site Supervisor A",
+      contact_phone: "07400111222",
+      contact_email: "canarywharf@bigeasy.example",
+      notes: "Access via loading bay before 9:00 AM.",
       created_at: "2026-01-01T00:00:00Z",
       updated_at: now(),
     },
@@ -213,10 +213,10 @@ const mockJobDetails: Record<string, JobDetail> = {
       address_line_2: "Unit 2",
       city: "Manchester",
       postcode: "M1 2AB",
-      contact_name: null,
-      contact_phone: null,
-      contact_email: null,
-      notes: null,
+      contact_name: "Facilities Manager B",
+      contact_phone: "07400333444",
+      contact_email: "manchester@bigeasy.example",
+      notes: "Report to reception and sign in on arrival.",
       created_at: "2026-01-01T00:00:00Z",
       updated_at: now(),
     },
@@ -489,6 +489,10 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       address_line_2: s.address_line_2,
       city: s.city,
       postcode: s.postcode,
+      contact_name: s.contact_name,
+      contact_phone: s.contact_phone,
+      contact_email: s.contact_email,
+      notes: s.notes,
       job_count: Object.values(mockJobDetails).filter((j) => j.site.id === s.id).length
     }));
     if (search) {
@@ -716,6 +720,8 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       full_name: u.full_name,
       role: u.role,
       is_active: u.is_active ?? true,
+      phone_number: u.phone_number ?? null,
+      address: u.address ?? null,
       created_at: u.created_at
     }));
     if (currentUser.role === "trade_manager") list = list.filter((u) => u.role === "engineer");
@@ -732,22 +738,36 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
     const id = parseInt(userIdMatch[1], 10);
     const u = users.find((x) => x.id === id);
     if (!u) throw new Error("User not found");
-    return { id: u.id, email: u.email, full_name: u.full_name, role: u.role, is_active: u.is_active, created_at: u.created_at, updated_at: u.updated_at };
+    return {
+      id: u.id,
+      email: u.email,
+      full_name: u.full_name,
+      role: u.role,
+      is_active: u.is_active,
+      phone_number: u.phone_number ?? null,
+      address: u.address ?? null,
+      created_at: u.created_at,
+      updated_at: u.updated_at
+    };
   }
   if (userIdMatch && method === "PUT") {
     const id = parseInt(userIdMatch[1], 10);
     const u = users.find((x) => x.id === id);
     if (!u) throw new Error("User not found");
 
-    const { email, full_name, is_active } = body as {
+    const { email, full_name, is_active, phone_number, address } = body as {
       email?: string;
       full_name?: string;
       is_active?: boolean;
+      phone_number?: string | null;
+      address?: string | null;
     };
 
     if (email !== undefined && String(email).trim()) u.email = String(email).trim();
     if (full_name !== undefined && String(full_name).trim()) u.full_name = String(full_name).trim();
     if (is_active !== undefined) u.is_active = Boolean(is_active);
+    if (phone_number !== undefined) u.phone_number = phone_number != null ? String(phone_number).trim() || null : null;
+    if (address !== undefined) u.address = address != null ? String(address).trim() || null : null;
     u.updated_at = now();
 
     for (const job of Object.values(mockJobDetails)) {
@@ -760,7 +780,17 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       }
     }
 
-    return { id: u.id, email: u.email, full_name: u.full_name, role: u.role, is_active: u.is_active, created_at: u.created_at, updated_at: u.updated_at };
+    return {
+      id: u.id,
+      email: u.email,
+      full_name: u.full_name,
+      role: u.role,
+      is_active: u.is_active,
+      phone_number: u.phone_number ?? null,
+      address: u.address ?? null,
+      created_at: u.created_at,
+      updated_at: u.updated_at
+    };
   }
   if (userIdMatch && method === "DELETE") {
     const id = parseInt(userIdMatch[1], 10);
@@ -780,8 +810,10 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
 
   // POST /users
   if (pathname === "/users" && method === "POST") {
-    const { email, password, full_name, role: requestedRole } = body;
-    if (!email || !password || !full_name) throw new Error("email, password, full_name required");
+    const { email, password, full_name, phone_number, address, role: requestedRole } = body;
+    if (!email || !password || !full_name || !phone_number || !address) {
+      throw new Error("email, password, full_name, phone_number, address required");
+    }
     const role = (requestedRole as UserRole) || "engineer";
     if (currentUser.role === "trade_manager" && role !== "engineer") {
       const err = new Error("Trade managers can only create engineers") as Error & { status?: number };
@@ -795,12 +827,22 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       full_name,
       role,
       is_active: true,
+      phone_number: String(phone_number).trim(),
+      address: String(address).trim(),
       created_by: currentUser.id,
       created_at: ts,
       updated_at: ts
     };
     users.push(newUser);
-    return { id: newUser.id, email: newUser.email, full_name: newUser.full_name, role: newUser.role, is_active: newUser.is_active };
+    return {
+      id: newUser.id,
+      email: newUser.email,
+      full_name: newUser.full_name,
+      role: newUser.role,
+      is_active: newUser.is_active,
+      phone_number: newUser.phone_number ?? null,
+      address: newUser.address ?? null
+    };
   }
 
   throw new Error(`Mock API: unknown route ${method} ${pathname}`);

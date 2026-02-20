@@ -37,6 +37,8 @@ export default function TradeManagersPage() {
     email: "",
     password: "",
     full_name: "",
+    phone_number: "",
+    address: "",
   });
 
   useEffect(() => {
@@ -70,13 +72,15 @@ export default function TradeManagersPage() {
           email: form.email,
           password: form.password,
           full_name: form.full_name,
+          phone_number: form.phone_number.trim(),
+          address: form.address.trim(),
           role: "trade_manager",
         })
       });
       const res = await apiFetch<UsersResponse>("/users?role=trade_manager");
       setUsers(res.users);
       setShowForm(false);
-      setForm({ email: "", password: "", full_name: "" });
+      setForm({ email: "", password: "", full_name: "", phone_number: "", address: "" });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create trade manager");
     } finally {
@@ -152,6 +156,25 @@ export default function TradeManagersPage() {
                     onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone_number">Phone number <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="phone_number"
+                    required
+                    type="tel"
+                    value={form.phone_number}
+                    onChange={(e) => setForm((f) => ({ ...f, phone_number: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="address"
+                    required
+                    value={form.address}
+                    onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                  />
+                </div>
               </div>
               <Button type="submit" disabled={submitting}>
                 {submitting ? "Creating..." : "Create trade manager"}
@@ -162,37 +185,43 @@ export default function TradeManagersPage() {
       )}
 
       <Card>
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Active</TableHead>
-              <TableHead className="w-[80px]"></TableHead>
+              <TableHead className="w-[140px]">Name</TableHead>
+              <TableHead className="w-[180px]">Email</TableHead>
+              <TableHead className="w-[130px]">Phone</TableHead>
+              <TableHead className="w-[200px]">Address</TableHead>
+              <TableHead className="w-[70px]">Active</TableHead>
+              <TableHead className="w-[220px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.map((u) => (
               <TableRow key={u.id}>
-                <TableCell>{u.full_name}</TableCell>
-                <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                <TableCell>{u.is_active ? "Yes" : "No"}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="bg-accent text-accent-foreground hover:bg-accent/90"
-                    disabled={loadingDetail}
-                    onClick={() => openUserDetail(u.id)}
-                  >
-                    View
-                  </Button>
+                <TableCell className="align-top whitespace-normal break-words">{u.full_name}</TableCell>
+                <TableCell className="text-muted-foreground align-top whitespace-normal break-words">{u.email}</TableCell>
+                <TableCell className="align-top whitespace-normal break-words">{u.phone_number ?? "-"}</TableCell>
+                <TableCell className="align-top whitespace-normal break-words">{u.address ?? "-"}</TableCell>
+                <TableCell className="align-top">{u.is_active ? "Yes" : "No"}</TableCell>
+                <TableCell className="text-right align-top">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="bg-accent text-accent-foreground hover:bg-accent/90"
+                      disabled={loadingDetail}
+                      onClick={() => openUserDetail(u.id)}
+                    >
+                      View
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
             {users.length === 0 && !error && (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                   No trade managers in this list.
                 </TableCell>
               </TableRow>
@@ -209,6 +238,8 @@ export default function TradeManagersPage() {
           {viewDetail && (
             <div className="space-y-3 text-sm">
               <p><span className="font-medium text-muted-foreground">Email:</span> {viewDetail.email}</p>
+              <p><span className="font-medium text-muted-foreground">Phone:</span> {viewDetail.phone_number ?? "-"}</p>
+              <p><span className="font-medium text-muted-foreground">Address:</span> {viewDetail.address ?? "-"}</p>
               <p><span className="font-medium text-muted-foreground">Role:</span> <span className="capitalize">{viewDetail.role.replace("_", " ")}</span></p>
               <p><span className="font-medium text-muted-foreground">Active:</span> {viewDetail.is_active ? "Yes" : "No"}</p>
               {viewDetail.created_at && (

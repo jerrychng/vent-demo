@@ -16,6 +16,8 @@ export type User = {
   full_name: string;
   role: UserRole;
   is_active: boolean;
+  phone_number?: string | null;
+  address?: string | null;
   created_by?: number | null;
   created_at?: string;
   updated_at?: string;
@@ -143,6 +145,10 @@ export type SiteListItem = {
   address_line_2?: string | null;
   city: string;
   postcode: string;
+  contact_name?: string | null;
+  contact_phone?: string | null;
+  contact_email?: string | null;
+  notes?: string | null;
   job_count?: number;
 };
 
@@ -172,6 +178,8 @@ export type TemplateDetail = TemplateListItem & {
 
 /** User list item (GET /users). */
 export type UserListItem = Pick<User, "id" | "email" | "full_name" | "role" | "is_active"> & {
+  phone_number?: string | null;
+  address?: string | null;
   created_at?: string;
 };
 

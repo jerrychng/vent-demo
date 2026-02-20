@@ -8,6 +8,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -49,7 +50,8 @@ export default function SitesPage() {
     postcode: "",
     contact_name: "",
     contact_phone: "",
-    contact_email: ""
+    contact_email: "",
+    notes: ""
   });
   const [editForm, setEditForm] = useState({
     client_name: "",
@@ -60,7 +62,8 @@ export default function SitesPage() {
     postcode: "",
     contact_name: "",
     contact_phone: "",
-    contact_email: ""
+    contact_email: "",
+    notes: ""
   });
 
   async function loadSites() {
@@ -104,14 +107,15 @@ export default function SitesPage() {
           postcode: form.postcode,
           contact_name: form.contact_name || null,
           contact_phone: form.contact_phone || null,
-          contact_email: form.contact_email || null
+          contact_email: form.contact_email || null,
+          notes: form.notes || null
         })
       });
       await loadSites();
       const t = toast({ title: "Site created successfully." });
       setTimeout(() => t.dismiss(), 4000);
       setShowForm(false);
-      setForm({ client_name: "", site_name: "", address_line_1: "", address_line_2: "", city: "", postcode: "", contact_name: "", contact_phone: "", contact_email: "" });
+      setForm({ client_name: "", site_name: "", address_line_1: "", address_line_2: "", city: "", postcode: "", contact_name: "", contact_phone: "", contact_email: "", notes: "" });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create site");
     } finally {
@@ -133,7 +137,8 @@ export default function SitesPage() {
         postcode: detail.postcode ?? "",
         contact_name: detail.contact_name ?? "",
         contact_phone: detail.contact_phone ?? "",
-        contact_email: detail.contact_email ?? ""
+        contact_email: detail.contact_email ?? "",
+        notes: detail.notes ?? ""
       });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load site for editing");
@@ -157,7 +162,8 @@ export default function SitesPage() {
           postcode: editForm.postcode,
           contact_name: editForm.contact_name || null,
           contact_phone: editForm.contact_phone || null,
-          contact_email: editForm.contact_email || null
+          contact_email: editForm.contact_email || null,
+          notes: editForm.notes || null
         })
       });
       await loadSites();
@@ -266,6 +272,10 @@ export default function SitesPage() {
                   <Label htmlFor="contact_email">Contact email</Label>
                   <Input id="contact_email" type="email" value={form.contact_email} onChange={(e) => setForm((f) => ({ ...f, contact_email: e.target.value }))} />
                 </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea id="notes" rows={3} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
+                </div>
               </div>
               <Button type="submit" disabled={submitting}>
                 {submitting ? (
@@ -283,28 +293,36 @@ export default function SitesPage() {
       )}
 
       <Card>
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead>Client</TableHead>
-              <TableHead>Site</TableHead>
-              <TableHead>Address</TableHead>
-              <TableHead>Jobs</TableHead>
+              <TableHead className="w-[140px]">Client</TableHead>
+              <TableHead className="w-[120px]">Site</TableHead>
+              <TableHead className="w-[220px]">Address</TableHead>
+              <TableHead className="w-[140px]">Contact Name</TableHead>
+              <TableHead className="w-[130px]">Contact Phone</TableHead>
+              <TableHead className="w-[200px]">Contact Email</TableHead>
+              <TableHead className="w-[260px]">Notes</TableHead>
+              <TableHead className="w-[70px]">Jobs</TableHead>
               <TableHead className="w-[220px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sites.map((site) => (
               <TableRow key={site.id}>
-                <TableCell>{site.client_name}</TableCell>
-                <TableCell className="text-muted-foreground">{site.site_name ?? "-"}</TableCell>
-                <TableCell>
+                <TableCell className="align-top whitespace-normal break-words">{site.client_name}</TableCell>
+                <TableCell className="text-muted-foreground align-top whitespace-normal break-words">{site.site_name ?? "-"}</TableCell>
+                <TableCell className="align-top whitespace-normal break-words">
                   {[site.address_line_1, site.address_line_2, site.city, site.postcode]
                     .filter((part) => !!part)
                     .join(", ")}
                 </TableCell>
-                <TableCell>{site.job_count ?? 0}</TableCell>
-                <TableCell className="text-right">
+                <TableCell className="align-top whitespace-normal break-words">{site.contact_name ?? "-"}</TableCell>
+                <TableCell className="align-top whitespace-normal break-words">{site.contact_phone ?? "-"}</TableCell>
+                <TableCell className="align-top whitespace-normal break-words">{site.contact_email ?? "-"}</TableCell>
+                <TableCell className="align-top whitespace-normal break-words">{site.notes ?? "-"}</TableCell>
+                <TableCell className="align-top">{site.job_count ?? 0}</TableCell>
+                <TableCell className="text-right align-top">
                   <div className="flex justify-end gap-2">
                     <Button
                       variant="ghost"
@@ -331,7 +349,7 @@ export default function SitesPage() {
             ))}
             {sites.length === 0 && !error && (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
                   {canManageSites ? "No sites yet. Create one above." : "No sites yet."}
                 </TableCell>
               </TableRow>
@@ -421,6 +439,10 @@ export default function SitesPage() {
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="edit-contact_email">Contact email</Label>
                 <Input id="edit-contact_email" type="email" value={editForm.contact_email} onChange={(e) => setEditForm((f) => ({ ...f, contact_email: e.target.value }))} />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="edit-notes">Notes</Label>
+                <Textarea id="edit-notes" rows={3} value={editForm.notes} onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))} />
               </div>
             </div>
             <div className="flex justify-end gap-2">

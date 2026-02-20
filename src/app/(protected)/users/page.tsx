@@ -37,16 +37,18 @@ export default function EngineerPage() {
   const [viewDetail, setViewDetail] = useState<User | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [editingUser, setEditingUser] = useState<UserListItem | null>(null);
-  const [deletingUser, setDeletingUser] = useState<UserListItem | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [form, setForm] = useState({
     email: "",
     password: "",
     full_name: "",
+    phone_number: "",
+    address: "",
   });
   const [editForm, setEditForm] = useState({
     is_active: true,
+    phone_number: "",
+    address: "",
   });
 
   async function loadEngineers() {
@@ -85,6 +87,8 @@ export default function EngineerPage() {
           email: form.email,
           password: form.password,
           full_name: form.full_name,
+          phone_number: form.phone_number.trim(),
+          address: form.address.trim(),
           role: "engineer",
         }),
       });
@@ -92,7 +96,7 @@ export default function EngineerPage() {
       const t = toast({ title: "Engineer created successfully." });
       setTimeout(() => t.dismiss(), 4000);
       setShowForm(false);
-      setForm({ email: "", password: "", full_name: "" });
+      setForm({ email: "", password: "", full_name: "", phone_number: "", address: "" });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create engineer");
     } finally {
@@ -102,10 +106,20 @@ export default function EngineerPage() {
 
   function startEditUser(target: UserListItem) {
     setError(null);
-    setEditingUser(target);
-    setEditForm({
-      is_active: target.is_active,
-    });
+    setLoadingDetail(true);
+    apiFetch<User>(`/users/${target.id}`)
+      .then((detail) => {
+        setEditingUser(target);
+        setEditForm({
+          is_active: detail.is_active,
+          phone_number: detail.phone_number ?? "",
+          address: detail.address ?? "",
+        });
+      })
+      .catch((err: unknown) => {
+        setError(err instanceof Error ? err.message : "Failed to load engineer");
+      })
+      .finally(() => setLoadingDetail(false));
   }
 
   async function handleUpdateUser(e: FormEvent) {
@@ -118,6 +132,8 @@ export default function EngineerPage() {
         method: "PUT",
         body: JSON.stringify({
           is_active: editForm.is_active,
+          phone_number: editForm.phone_number.trim() || null,
+          address: editForm.address.trim() || null,
         }),
       });
       await loadEngineers();
@@ -131,26 +147,6 @@ export default function EngineerPage() {
       setError(err instanceof Error ? err.message : "Failed to update engineer");
     } finally {
       setSavingEdit(false);
-    }
-  }
-
-  async function handleDeleteUser() {
-    if (!deletingUser) return;
-    setError(null);
-    setDeleting(true);
-    try {
-      await apiFetch(`/users/${deletingUser.id}`, { method: "DELETE" });
-      await loadEngineers();
-      const t = toast({ title: "Engineer deleted successfully." });
-      setTimeout(() => t.dismiss(), 4000);
-      if (viewDetail?.id === deletingUser.id) {
-        setViewDetail(null);
-      }
-      setDeletingUser(null);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to delete engineer");
-    } finally {
-      setDeleting(false);
     }
   }
 
@@ -229,6 +225,25 @@ export default function EngineerPage() {
                     onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone_number">Phone number <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="phone_number"
+                    type="tel"
+                    required
+                    value={form.phone_number}
+                    onChange={(e) => setForm((f) => ({ ...f, phone_number: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
+                  <Input
+                    id="address"
+                    required
+                    value={form.address}
+                    onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                  />
+                </div>
               </div>
               <Button type="submit" disabled={submitting}>
                 {submitting ? (
@@ -246,22 +261,26 @@ export default function EngineerPage() {
       )}
 
       <Card>
-        <Table>
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Active</TableHead>
-              <TableHead className="w-[240px] text-right">Actions</TableHead>
+              <TableHead className="w-[140px]">Name</TableHead>
+              <TableHead className="w-[180px]">Email</TableHead>
+              <TableHead className="w-[130px]">Phone</TableHead>
+              <TableHead className="w-[200px]">Address</TableHead>
+              <TableHead className="w-[70px]">Active</TableHead>
+              <TableHead className="w-[220px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.map((u) => (
               <TableRow key={u.id}>
-                <TableCell>{u.full_name}</TableCell>
-                <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                <TableCell>{u.is_active ? "Yes" : "No"}</TableCell>
-                <TableCell className="text-right">
+                <TableCell className="align-top whitespace-normal break-words">{u.full_name}</TableCell>
+                <TableCell className="text-muted-foreground align-top whitespace-normal break-words">{u.email}</TableCell>
+                <TableCell className="align-top whitespace-normal break-words">{u.phone_number ?? "-"}</TableCell>
+                <TableCell className="align-top whitespace-normal break-words">{u.address ?? "-"}</TableCell>
+                <TableCell className="align-top">{u.is_active ? "Yes" : "No"}</TableCell>
+                <TableCell className="text-right align-top">
                   <div className="flex justify-end gap-2">
                     <Button
                       variant="ghost"
@@ -275,16 +294,13 @@ export default function EngineerPage() {
                     <Button variant="outline" size="sm" className="hover:bg-transparent hover:text-foreground" onClick={() => startEditUser(u)}>
                       Edit
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={() => setDeletingUser(u)}>
-                      Delete
-                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
             ))}
             {users.length === 0 && !error && (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                   No engineers in this list.
                 </TableCell>
               </TableRow>
@@ -301,6 +317,8 @@ export default function EngineerPage() {
           {viewDetail && (
             <div className="space-y-3 text-sm">
               <p><span className="font-medium text-muted-foreground">Email:</span> {viewDetail.email}</p>
+              <p><span className="font-medium text-muted-foreground">Phone:</span> {viewDetail.phone_number ?? "-"}</p>
+              <p><span className="font-medium text-muted-foreground">Address:</span> {viewDetail.address ?? "-"}</p>
               <p><span className="font-medium text-muted-foreground">Role:</span> <span className="capitalize">{viewDetail.role.replace("_", " ")}</span></p>
               <p><span className="font-medium text-muted-foreground">Active:</span> {viewDetail.is_active ? "Yes" : "No"}</p>
               {viewDetail.created_at && (
@@ -337,6 +355,23 @@ export default function EngineerPage() {
                 <option value="false">No</option>
               </select>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-engineer-phone">Phone number</Label>
+              <Input
+                id="edit-engineer-phone"
+                type="tel"
+                value={editForm.phone_number}
+                onChange={(e) => setEditForm((f) => ({ ...f, phone_number: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-engineer-address">Address</Label>
+              <Input
+                id="edit-engineer-address"
+                value={editForm.address}
+                onChange={(e) => setEditForm((f) => ({ ...f, address: e.target.value }))}
+              />
+            </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setEditingUser(null)} disabled={savingEdit}>
                 Cancel
@@ -349,24 +384,6 @@ export default function EngineerPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!deletingUser} onOpenChange={(open) => !open && setDeletingUser(null)}>
-        <DialogContent className="max-w-md rounded-[12px]">
-          <DialogHeader>
-            <DialogTitle>Delete engineer</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Are you sure you want to delete {deletingUser?.full_name ?? "this engineer"}?
-          </p>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setDeletingUser(null)} disabled={deleting}>
-              Cancel
-            </Button>
-            <Button type="button" variant="destructive" onClick={handleDeleteUser} disabled={deleting}>
-              {deleting ? "Deleting..." : "Delete"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
