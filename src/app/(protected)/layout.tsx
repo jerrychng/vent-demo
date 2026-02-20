@@ -62,10 +62,17 @@ function SidebarContent({
         <p className="text-[11px] uppercase text-muted-foreground/80">{roleLabel}</p>
       </div>
       <nav className="flex-1 space-y-1 text-sm">
-        <Link href="/dashboard" onClick={onNavClick}>
-          <Button variant="ghost" className={pathname === "/dashboard" ? sidebarNavActiveClass : sidebarNavClass}>
+        <Link href={user.role === "engineer" ? "/engineer-home" : "/dashboard"} onClick={onNavClick}>
+          <Button
+            variant="ghost"
+            className={
+              pathname === "/dashboard" || pathname === "/engineer-home"
+                ? sidebarNavActiveClass
+                : sidebarNavClass
+            }
+          >
             <LayoutDashboard className="h-4 w-4" />
-            Dashboard
+            {user.role === "engineer" ? "Home" : "Dashboard"}
           </Button>
         </Link>
         <Link href="/jobs" onClick={onNavClick}>
@@ -140,6 +147,20 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
   if (!user) {
     return null;
+  }
+
+  if (user.role === "engineer") {
+    const isEngineerSchedule =
+      pathname === "/engineer-schedule" || pathname === "/engineer-schedule/";
+
+    return (
+      <main
+        className="min-h-screen bg-white"
+        style={isEngineerSchedule ? undefined : { paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
+      >
+        {children}
+      </main>
+    );
   }
 
   const closeSheet = () => setSheetOpen(false);

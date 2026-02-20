@@ -28,7 +28,7 @@ type JWTPayload = {
 type AuthContextValue = {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   logout: () => void;
   isTokenValid: () => boolean;
 };
@@ -128,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   /** Login: POST credentials → store JWT → set user from decoded JWT (or from response.user). */
-  async function login(email: string, password: string) {
+  async function login(email: string, password: string): Promise<User> {
     const res = await apiFetch<{
       access_token: string;
       token_type: string;
@@ -145,9 +145,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const userFromToken = extractUserFromToken(res.access_token);
     if (userFromToken) {
       setUser(userFromToken);
+      return userFromToken;
     } else if (res.user) {
       setUser(res.user);
+      return res.user;
     }
+
+    throw new Error("Unable to determine authenticated user");
   }
 
   /** Clear JWT and user; caller typically redirects to /login. */
@@ -172,4 +176,3 @@ export function useAuth() {
   }
   return ctx;
 }
-

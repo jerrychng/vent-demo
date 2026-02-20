@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import type { JobRow, JobsResponse } from "@/types/models";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,18 +18,25 @@ import {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { user, loading } = useAuth();
   const [pending, setPending] = useState<JobRow[]>([]);
   const [approvedCount, setApprovedCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (loading || !user) return;
+    if (user.role === "engineer") {
+      router.replace("/engineer-home");
+      return;
+    }
+
     apiFetch<JobsResponse>("/jobs?status=submitted")
       .then((res) => setPending(res.jobs))
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load jobs pending review"));
     apiFetch<JobsResponse>("/jobs?status=approved")
       .then((res) => setApprovedCount(res.total))
       .catch(() => setApprovedCount(0));
-  }, []);
+  }, [loading, user, router]);
 
   return (
     <div className="space-y-6">

@@ -27,8 +27,8 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      await login(email, password); // stores JWT, sets user in context
-      router.push("/dashboard");
+      const loggedInUser = await login(email, password); // stores JWT, sets user in context
+      router.push(loggedInUser.role === "engineer" ? "/engineer-home" : "/dashboard");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

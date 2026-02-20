@@ -30,7 +30,7 @@
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
-  --font-sans: Montserrat, Helvetica, Arial, sans-serif;
+  --font-sans: "mont-regular", Helvetica, Arial, sans-serif;
   --font-family-light: "mont-light";
   --font-weight-light: 300;
   --letter-spacing-base: 0.2px;
