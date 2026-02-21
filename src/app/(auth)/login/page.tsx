@@ -36,17 +36,21 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="auth-page">
-      <div className="auth-card text-[#17325e]">
+    <main
+      className="min-h-screen flex items-center justify-center py-5 px-3.5 bg-cover bg-center bg-[url('/assets/background.jpg')]"
+    >
+      <div
+        className="w-full max-w-96 rounded-[1.125rem] p-6 text-center text-[#17325e] bg-white border border-[#d8e6ff] shadow-[0_18px_32px_rgba(23,50,94,0.18)]"
+      >
         <div className="mb-6">
           <img
             src="/assets/aspectLogoIcon.svg"
             alt="ASPECT Logo"
-            className="auth-logo"
+            className="w-16 h-16 mx-auto object-contain"
           />
         </div>
-        <h1 className="auth-title font-bold">Chumley Navigator for Vent Hygiene</h1>
-        <p className="auth-subtitle text-sm text-[#17325e]/75">Sign in to access the dashboard</p>
+        <h1 className="text-2xl font-bold leading-tight mb-1.5">Chumley Navigator for Vent Hygiene</h1>
+        <p className="text-sm text-[#17325e]/75 mb-5">Sign in to access the dashboard</p>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
           {error && (
@@ -79,7 +83,7 @@ export default function LoginPage() {
           </div>
           <Button
             type="submit"
-            className="auth-primary-btn w-full bg-[var(--color-primary)] text-white hover:bg-[#17325e]"
+            className="w-full min-h-11 bg-[var(--color-primary)] text-white hover:bg-[#17325e]"
             disabled={loading}
           >
             {loading ? "Signing in..." : "Sign in"}

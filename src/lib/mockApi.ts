@@ -1,6 +1,5 @@
 /**
  * In-memory mock API for development without a backend.
- * Enable with NEXT_PUBLIC_USE_MOCK_API=true
  */
 
 import type {

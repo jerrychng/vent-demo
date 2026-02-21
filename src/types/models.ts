@@ -8,6 +8,7 @@
  * - trade_manager: Can create sites, templates, and engineers. List users, create engineers. Cannot create or manage other trade managers.
  * - engineer: Assigned to jobs; captures work (e.g. pre/post photos). No access to Sites/Templates/Engineer management.
  */
+
 export type UserRole = "super_admin" | "trade_manager" | "engineer";
 
 export type User = {
