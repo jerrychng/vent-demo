@@ -38,6 +38,43 @@ import {
 } from "@/components/ui/table";
 import { Plus } from "lucide-react";
 
+function toLocalDateTimeInputValue(value: string | null): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const offsetMs = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+function getNowLocalDateTimeInputValue(): string {
+  const now = new Date();
+  const offsetMs = now.getTimezoneOffset() * 60_000;
+  return new Date(now.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+function getTodayInputValue(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function formatScheduledWindow(start: string | null, end: string | null): string {
+  if (!start && !end) return "-";
+  const startDate = start ? new Date(start) : null;
+  const endDate = end ? new Date(end) : null;
+  const startText = startDate && !Number.isNaN(startDate.getTime()) ? startDate.toLocaleString() : start ?? "-";
+  const endText = endDate && !Number.isNaN(endDate.getTime()) ? endDate.toLocaleString() : end ?? "-";
+  if (!start) return `Ends: ${endText}`;
+  if (!end) return `Starts: ${startText}`;
+  return `${startText} - ${endText}`;
+}
+
+function getStatusBadgeClass(status: JobStatus): string {
+  if (status === "rejected") return "bg-red-100 text-red-700";
+  if (status === "approved") return "bg-green-100 text-green-700";
+  if (status === "in_progress") return "bg-yellow-100 text-yellow-700";
+  if (status === "assigned") return "bg-blue-100 text-blue-700";
+  return "bg-muted text-muted-foreground";
+}
+
 export default function JobsPage() {
   const { user, loading } = useAuth();
   const [jobs, setJobs] = useState<JobRow[]>([]);
@@ -64,6 +101,8 @@ export default function JobsPage() {
     template_id: "",
     engineer_id: "",
     scheduled_date: "",
+    scheduled_start_time: "",
+    scheduled_end_time: "",
   });
   const [editForm, setEditForm] = useState({
     title: "",
@@ -71,6 +110,8 @@ export default function JobsPage() {
     engineer_id: "",
     status: "assigned" as JobStatus,
     scheduled_date: "",
+    scheduled_start_time: "",
+    scheduled_end_time: "",
   });
 
   async function loadJobs() {
@@ -109,6 +150,21 @@ export default function JobsPage() {
     setSubmitting(true);
 
     try {
+      const nowMs = Date.now();
+      if (form.scheduled_date && new Date(`${form.scheduled_date}T00:00:00`).getTime() < new Date(`${getTodayInputValue()}T00:00:00`).getTime()) {
+        throw new Error("Scheduled date cannot be in the past");
+      }
+      if (form.engineer_id) {
+        if (!form.scheduled_start_time || !form.scheduled_end_time) {
+          throw new Error("Scheduled start and end time are required when assigning an engineer");
+        }
+        if (new Date(form.scheduled_start_time).getTime() < nowMs) {
+          throw new Error("Scheduled start time cannot be before the current time");
+        }
+        if (new Date(form.scheduled_end_time).getTime() <= new Date(form.scheduled_start_time).getTime()) {
+          throw new Error("Scheduled end time must be after start time");
+        }
+      }
       await apiFetch("/jobs", {
         method: "POST",
         body: JSON.stringify({
@@ -118,6 +174,8 @@ export default function JobsPage() {
           template_id: Number(form.template_id),
           engineer_id: form.engineer_id ? Number(form.engineer_id) : null,
           scheduled_date: form.scheduled_date || null,
+          scheduled_start_time: form.scheduled_start_time || null,
+          scheduled_end_time: form.scheduled_end_time || null,
         }),
       });
 
@@ -132,6 +190,8 @@ export default function JobsPage() {
         template_id: "",
         engineer_id: "",
         scheduled_date: "",
+        scheduled_start_time: "",
+        scheduled_end_time: "",
       });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create job");
@@ -151,6 +211,8 @@ export default function JobsPage() {
         engineer_id: detail.engineer?.id ? String(detail.engineer.id) : "",
         status: detail.status,
         scheduled_date: detail.scheduled_date ?? "",
+        scheduled_start_time: toLocalDateTimeInputValue(detail.scheduled_start_time ?? null),
+        scheduled_end_time: toLocalDateTimeInputValue(detail.scheduled_end_time ?? null),
       });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load job for editing");
@@ -163,6 +225,21 @@ export default function JobsPage() {
     setError(null);
     setSavingEdit(true);
     try {
+      const nowMs = Date.now();
+      if (editForm.scheduled_date && new Date(`${editForm.scheduled_date}T00:00:00`).getTime() < new Date(`${getTodayInputValue()}T00:00:00`).getTime()) {
+        throw new Error("Scheduled date cannot be in the past");
+      }
+      if (editForm.engineer_id) {
+        if (!editForm.scheduled_start_time || !editForm.scheduled_end_time) {
+          throw new Error("Scheduled start and end time are required when assigning an engineer");
+        }
+        if (new Date(editForm.scheduled_start_time).getTime() < nowMs) {
+          throw new Error("Scheduled start time cannot be before the current time");
+        }
+        if (new Date(editForm.scheduled_end_time).getTime() <= new Date(editForm.scheduled_start_time).getTime()) {
+          throw new Error("Scheduled end time must be after start time");
+        }
+      }
       await apiFetch(`/jobs/${editingJob.id}`, {
         method: "PUT",
         body: JSON.stringify({
@@ -171,6 +248,8 @@ export default function JobsPage() {
           engineer_id: editForm.engineer_id ? Number(editForm.engineer_id) : null,
           status: editForm.status,
           scheduled_date: editForm.scheduled_date || null,
+          scheduled_start_time: editForm.scheduled_start_time || null,
+          scheduled_end_time: editForm.scheduled_end_time || null,
         }),
       });
       await loadJobs();
@@ -327,13 +406,36 @@ export default function JobsPage() {
                 </select>
               </div>
 
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="job-scheduled-date">Scheduled Date</Label>
                 <Input
                   id="job-scheduled-date"
                   type="date"
+                  min={getTodayInputValue()}
                   value={form.scheduled_date}
                   onChange={(e) => setForm((f) => ({ ...f, scheduled_date: e.target.value }))}
+                />
+              </div> */}
+              <div className="space-y-2">
+                <Label htmlFor="job-scheduled-start-time">Scheduled Start Time</Label>
+                <Input
+                  id="job-scheduled-start-time"
+                  type="datetime-local"
+                  min={getNowLocalDateTimeInputValue()}
+                  required={!!form.engineer_id}
+                  value={form.scheduled_start_time}
+                  onChange={(e) => setForm((f) => ({ ...f, scheduled_start_time: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="job-scheduled-end-time">Scheduled End Time</Label>
+                <Input
+                  id="job-scheduled-end-time"
+                  type="datetime-local"
+                  min={form.scheduled_start_time || getNowLocalDateTimeInputValue()}
+                  required={!!form.engineer_id}
+                  value={form.scheduled_end_time}
+                  onChange={(e) => setForm((f) => ({ ...f, scheduled_end_time: e.target.value }))}
                 />
               </div>
             </div>
@@ -396,7 +498,7 @@ export default function JobsPage() {
               <TableHead>Site</TableHead>
               <TableHead>Engineer</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Scheduled</TableHead>
+              <TableHead>Scheduled Window</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -415,8 +517,12 @@ export default function JobsPage() {
                     .join(", ") || job.site.postcode || "-"}
                 </TableCell>
                 <TableCell>{job.engineer?.full_name ?? "Unassigned"}</TableCell>
-                <TableCell className="capitalize">{job.status.replace("_", " ")}</TableCell>
-                <TableCell>{job.scheduled_date ?? "-"}</TableCell>
+                <TableCell>
+                  <span className={`inline-flex rounded-md px-2 py-1 text-xs font-medium capitalize ${getStatusBadgeClass(job.status)}`}>
+                    {job.status.replace("_", " ")}
+                  </span>
+                </TableCell>
+                <TableCell>{formatScheduledWindow(job.scheduled_start_time ?? null, job.scheduled_end_time ?? null)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button
@@ -533,9 +639,34 @@ export default function JobsPage() {
               <Input
                 id="edit-job-scheduled-date"
                 type="date"
+                min={getTodayInputValue()}
                 value={editForm.scheduled_date}
                 onChange={(e) => setEditForm((f) => ({ ...f, scheduled_date: e.target.value }))}
               />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-job-scheduled-start-time">Scheduled start time</Label>
+                <Input
+                  id="edit-job-scheduled-start-time"
+                  type="datetime-local"
+                  min={getNowLocalDateTimeInputValue()}
+                  required={!!editForm.engineer_id}
+                  value={editForm.scheduled_start_time}
+                  onChange={(e) => setEditForm((f) => ({ ...f, scheduled_start_time: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-job-scheduled-end-time">Scheduled end time</Label>
+                <Input
+                  id="edit-job-scheduled-end-time"
+                  type="datetime-local"
+                  min={editForm.scheduled_start_time || getNowLocalDateTimeInputValue()}
+                  required={!!editForm.engineer_id}
+                  value={editForm.scheduled_end_time}
+                  onChange={(e) => setEditForm((f) => ({ ...f, scheduled_end_time: e.target.value }))}
+                />
+              </div>
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setEditingJob(null)} disabled={savingEdit}>

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
-import type { JobRow, JobsResponse } from "@/types/models";
+import type { JobDetail, JobRow, JobsResponse } from "@/types/models";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,8 +20,10 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [pending, setPending] = useState<JobRow[]>([]);
+  const [activeCount, setActiveCount] = useState<number | null>(null);
   const [approvedCount, setApprovedCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [jobPhotoPreview, setJobPhotoPreview] = useState<Record<number, { pre: string | null; post: string | null }>>({});
 
   useEffect(() => {
     if (loading || !user) return;
@@ -33,10 +35,34 @@ export default function DashboardPage() {
     apiFetch<JobsResponse>("/jobs?status=submitted")
       .then((res) => setPending(res.jobs))
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load jobs pending review"));
+    apiFetch<JobsResponse>("/jobs?status=in_progress")
+      .then((res) => setActiveCount(res.total))
+      .catch(() => setActiveCount(0));
     apiFetch<JobsResponse>("/jobs?status=approved")
       .then((res) => setApprovedCount(res.total))
       .catch(() => setApprovedCount(0));
   }, [loading, user, router]);
+
+  useEffect(() => {
+    if (pending.length === 0) {
+      setJobPhotoPreview({});
+      return;
+    }
+
+    Promise.all(
+      pending.map(async (job) => {
+        try {
+          const detail = await apiFetch<JobDetail>(`/jobs/${job.id}`);
+          const first = detail.captures.find((c) => c.pre_image_url || c.post_image_url) ?? detail.captures[0];
+          return [job.id, { pre: first?.pre_image_url ?? null, post: first?.post_image_url ?? null }] as const;
+        } catch {
+          return [job.id, { pre: null, post: null }] as const;
+        }
+      })
+    ).then((entries) => {
+      setJobPhotoPreview(Object.fromEntries(entries));
+    });
+  }, [pending]);
 
   return (
     <div className="space-y-6">
@@ -50,7 +76,7 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">–</p>
+            <p className="text-3xl font-semibold">{activeCount === null ? "–" : activeCount}</p>
           </CardContent>
         </Card>
         <Card>
@@ -96,7 +122,8 @@ export default function DashboardPage() {
                 <TableHead>Engineer</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Scheduled</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                {/* <TableHead>Photos</TableHead> */}
+                {/* <TableHead className="text-right">Actions</TableHead> */}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -116,6 +143,20 @@ export default function DashboardPage() {
                   <TableCell>{job.engineer?.full_name ?? "Unassigned"}</TableCell>
                   <TableCell className="capitalize">{job.status.replace("_", " ")}</TableCell>
                   <TableCell>{job.scheduled_date ?? "-"}</TableCell>
+                  {/* <TableCell>
+                    <div className="flex items-center gap-2">
+                      {jobPhotoPreview[job.id]?.pre ? (
+                        <img src={jobPhotoPreview[job.id].pre!} alt="Pre" className="h-10 w-10 rounded border object-cover" />
+                      ) : (
+                        <div className="flex h-10 w-10 items-center justify-center rounded border text-[10px] text-muted-foreground">Pre</div>
+                      )}
+                      {jobPhotoPreview[job.id]?.post ? (
+                        <img src={jobPhotoPreview[job.id].post!} alt="Post" className="h-10 w-10 rounded border object-cover" />
+                      ) : (
+                        <div className="flex h-10 w-10 items-center justify-center rounded border text-[10px] text-muted-foreground">Post</div>
+                      )}
+                    </div>
+                  </TableCell> */}
                   <TableCell className="text-right">
                     <Button
                       size="sm"
@@ -133,7 +174,7 @@ export default function DashboardPage() {
               ))}
               {pending.length === 0 && !error && (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                     No jobs pending review.
                   </TableCell>
                 </TableRow>
@@ -145,3 +186,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

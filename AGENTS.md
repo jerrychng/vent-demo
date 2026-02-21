@@ -1,7 +1,8 @@
 ﻿
 ## Note
 
-**Note: This section outlines our plan.**
+**Note:** This section outlines our plan. Remember to always use `global.css` for consistent styling across the application.
+
 
 Trade Job Management System![](Aspose.Words.f648323c-7404-4cde-81c6-45dce71b06f6.001.png)
 

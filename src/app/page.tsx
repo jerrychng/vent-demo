@@ -28,7 +28,11 @@ export default function HomePage() {
         />
       </div>
 
-      <div className="relative hidden min-h-screen md:flex items-center justify-center bg-gradient-to-br from-[#27549d] via-[#3f67af] to-[#8ea9d9]">
+      <div
+        className="relative hidden min-h-screen md:flex items-center justify-center bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/assets/background.jpg')" }}
+      >
+        <div className="absolute inset-0 bg-[#17325e]/30" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_25%,rgba(255,255,255,0.18),transparent_45%)]" />
         <Image
           src="/assets/VanAspect.png"

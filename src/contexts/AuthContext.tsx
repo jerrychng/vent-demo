@@ -142,16 +142,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       window.localStorage.setItem("token", res.access_token);
     }
 
-    const userFromToken = extractUserFromToken(res.access_token);
-    if (userFromToken) {
-      setUser(userFromToken);
-      return userFromToken;
-    } else if (res.user) {
-      setUser(res.user);
-      return res.user;
+    try {
+      const me = await apiFetch<User>("/auth/me");
+      setUser(me);
+      return me;
+    } catch {
+      const userFromToken = extractUserFromToken(res.access_token);
+      if (userFromToken) {
+        setUser(userFromToken);
+        return userFromToken;
+      } else if (res.user) {
+        setUser(res.user);
+        return res.user;
+      }
+      throw new Error("Unable to determine authenticated user");
     }
-
-    throw new Error("Unable to determine authenticated user");
   }
 
   /** Clear JWT and user; caller typically redirects to /login. */

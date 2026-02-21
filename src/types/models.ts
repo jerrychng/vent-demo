@@ -78,6 +78,8 @@ export type Job = {
   created_by: number;
   status: JobStatus;
   scheduled_date: string | null;
+  scheduled_start_time: string | null;
+  scheduled_end_time: string | null;
   started_at: string | null;
   submitted_at: string | null;
   reviewed_at: string | null;
@@ -113,15 +115,18 @@ export type SiteSummary = Pick<Site, "client_name" | "site_name" | "postcode"> &
 export type EngineerSummary = Pick<User, "full_name"> & { id?: number };
 
 /** Job list item: job fields plus nested site and engineer summaries. */
-export type JobRow = Pick<Job, "id" | "reference" | "title" | "status" | "scheduled_date" | "created_at"> & {
+export type JobRow = Pick<Job, "id" | "reference" | "title" | "status" | "scheduled_date" | "scheduled_start_time" | "scheduled_end_time" | "created_at"> & {
   site: SiteSummary;
   engineer: EngineerSummary | null;
+  submitted_at?: string | null;
+  review_notes?: string | null;
 };
 
 /** Work capture with template area info for display (e.g. GET /jobs/:id). */
 export type WorkCaptureWithArea = WorkCapture & {
   area_name: string;
   order_index: number;
+  photo_guidance?: string | null;
 };
 
 /** Job detail: job with embedded site, engineer, and captures (with area info). */

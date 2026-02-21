@@ -72,7 +72,10 @@ function getUserForToken(token: string | null): User | null {
   if (!token) return null;
   const fromMap = tokenToUser.get(token);
   if (fromMap) return fromMap;
-  return decodeMockJwt(token);
+  const fromJwt = decodeMockJwt(token);
+  if (!fromJwt) return null;
+  const persisted = users.find((u) => u.id === fromJwt.id) ?? users.find((u) => u.email === fromJwt.email);
+  return persisted ?? fromJwt;
 }
 
 const now = () => new Date().toISOString();
@@ -115,7 +118,7 @@ const mockSites: Site[] = [
 // --- Mock templates + areas ---
 let nextTemplateId = 2;
 let nextAreaId = 3;
-let nextCaptureId = 2;
+let nextCaptureId = 5;
 const mockTemplates: Array<TemplateListItem & { areas?: TemplateArea[] }> = [
   {
     id: 1,
@@ -142,7 +145,7 @@ const mockTemplateAreas: TemplateArea[] = [
 ];
 
 // Mock job details (full Site, WorkCaptureWithArea) for GET /jobs/:id
-let nextJobId = 3;
+let nextJobId = 5;
 const mockJobDetails: Record<string, JobDetail> = {
   "1": {
     id: 1,
@@ -151,6 +154,8 @@ const mockJobDetails: Record<string, JobDetail> = {
     description: "Annual electrical safety check",
     status: "submitted",
     scheduled_date: null,
+    scheduled_start_time: "2026-01-20T09:00:00Z",
+    scheduled_end_time: "2026-01-20T11:00:00Z",
     started_at: null,
     submitted_at: now(),
     reviewed_at: null,
@@ -179,13 +184,14 @@ const mockJobDetails: Record<string, JobDetail> = {
         job_id: 1,
         template_area_id: 1,
         area_name: "Main Canopy",
-        order_index: 0,
-        pre_image_url: null,
-        pre_thumbnail_url: null,
-        pre_captured_at: null,
-        post_image_url: null,
-        post_thumbnail_url: null,
-        post_captured_at: null,
+        order_index: 1,
+        photo_guidance: "Photograph from below, capture full width",
+        pre_image_url: "https://albertahomeservices.com/wp-content/uploads/2018/02/Dirty-Air-Vent.jpg",
+        pre_thumbnail_url: "https://albertahomeservices.com/wp-content/uploads/2018/02/Dirty-Air-Vent.jpg",
+        pre_captured_at: now(),
+        post_image_url: "https://tse1.mm.bing.net/th/id/OIP.iqK7eCXZB4s6W5MGzLi-HwAAAA?rs=1&pid=ImgDetMain&o=7&rm=3",
+        post_thumbnail_url: "https://tse1.mm.bing.net/th/id/OIP.iqK7eCXZB4s6W5MGzLi-HwAAAA?rs=1&pid=ImgDetMain&o=7&rm=3",
+        post_captured_at: now(),
         notes: null,
         created_at: now(),
         updated_at: now(),
@@ -199,6 +205,8 @@ const mockJobDetails: Record<string, JobDetail> = {
     description: null,
     status: "in_progress",
     scheduled_date: null,
+    scheduled_start_time: "2026-01-21T13:30:00Z",
+    scheduled_end_time: "2026-01-21T16:30:00Z",
     started_at: null,
     submitted_at: null,
     reviewed_at: null,
@@ -221,7 +229,127 @@ const mockJobDetails: Record<string, JobDetail> = {
       updated_at: now(),
     },
     engineer: { id: 2, full_name: "Bob Smith" },
-    captures: [],
+    captures: [
+      {
+        id: 2,
+        job_id: 2,
+        template_area_id: 1,
+        area_name: "Main Canopy",
+        order_index: 1,
+        photo_guidance: "Photograph from below, capture full width",
+        pre_image_url: null,
+        pre_thumbnail_url: null,
+        pre_captured_at: null,
+        post_image_url: null,
+        post_thumbnail_url: null,
+        post_captured_at: null,
+        notes: null,
+        created_at: now(),
+        updated_at: now(),
+      },
+    ],
+  },
+  "3": {
+    id: 3,
+    reference: "JOB-20260131-C5D0",
+    title: "Vent deep clean",
+    description: "Completed ventilation deep clean",
+    status: "approved",
+    scheduled_date: null,
+    scheduled_start_time: "2026-01-19T08:00:00Z",
+    scheduled_end_time: "2026-01-19T12:00:00Z",
+    started_at: "2026-01-19T08:05:00Z",
+    submitted_at: "2026-01-19T12:20:00Z",
+    reviewed_at: "2026-01-19T13:00:00Z",
+    review_notes: null,
+    created_at: "2026-01-15T10:00:00Z",
+    updated_at: now(),
+    site: {
+      id: 1,
+      client_name: "Big Easy",
+      site_name: "Canary Wharf",
+      address_line_1: "123 High Street",
+      address_line_2: null,
+      city: "London",
+      postcode: "SW1A 1AA",
+      contact_name: "Site Supervisor A",
+      contact_phone: "07400111222",
+      contact_email: "canarywharf@bigeasy.example",
+      notes: "Access via loading bay before 9:00 AM.",
+      created_at: "2026-01-01T00:00:00Z",
+      updated_at: now(),
+    },
+    engineer: { id: 2, full_name: "Bob Smith" },
+    captures: [
+      {
+        id: 3,
+        job_id: 3,
+        template_area_id: 1,
+        area_name: "Main Canopy",
+        order_index: 1,
+        photo_guidance: "Photograph from below, capture full width",
+        pre_image_url: "https://albertahomeservices.com/wp-content/uploads/2018/02/Dirty-Air-Vent.jpg",
+        pre_thumbnail_url: "https://albertahomeservices.com/wp-content/uploads/2018/02/Dirty-Air-Vent.jpg",
+        pre_captured_at: "2026-01-19T08:30:00Z",
+        post_image_url: "https://tse1.mm.bing.net/th/id/OIP.iqK7eCXZB4s6W5MGzLi-HwAAAA?rs=1&pid=ImgDetMain&o=7&rm=3",
+        post_thumbnail_url: "https://tse1.mm.bing.net/th/id/OIP.iqK7eCXZB4s6W5MGzLi-HwAAAA?rs=1&pid=ImgDetMain&o=7&rm=3",
+        post_captured_at: "2026-01-19T11:45:00Z",
+        notes: null,
+        created_at: now(),
+        updated_at: now(),
+      },
+    ],
+  },
+  "4": {
+    id: 4,
+    reference: "JOB-20260131-D6F9",
+    title: "Duct inspection follow-up",
+    description: "Follow-up inspection after initial clean",
+    status: "rejected",
+    scheduled_date: null,
+    scheduled_start_time: "2026-01-18T09:00:00Z",
+    scheduled_end_time: "2026-01-18T11:30:00Z",
+    started_at: "2026-01-18T09:10:00Z",
+    submitted_at: "2026-01-18T11:45:00Z",
+    reviewed_at: "2026-01-18T12:20:00Z",
+    review_notes: "Post-work photo is blurry and does not clearly show the cleaned area.",
+    created_at: "2026-01-15T10:00:00Z",
+    updated_at: now(),
+    site: {
+      id: 2,
+      client_name: "Big Easy",
+      site_name: "Site B",
+      address_line_1: "45 Industrial Rd",
+      address_line_2: "Unit 2",
+      city: "Manchester",
+      postcode: "M1 2AB",
+      contact_name: "Facilities Manager B",
+      contact_phone: "07400333444",
+      contact_email: "manchester@bigeasy.example",
+      notes: "Report to reception and sign in on arrival.",
+      created_at: "2026-01-01T00:00:00Z",
+      updated_at: now(),
+    },
+    engineer: { id: 2, full_name: "Bob Smith" },
+    captures: [
+      {
+        id: 4,
+        job_id: 4,
+        template_area_id: 1,
+        area_name: "Main Canopy",
+        order_index: 1,
+        photo_guidance: "Photograph from below, capture full width",
+        pre_image_url: "https://albertahomeservices.com/wp-content/uploads/2018/02/Dirty-Air-Vent.jpg",
+        pre_thumbnail_url: "https://albertahomeservices.com/wp-content/uploads/2018/02/Dirty-Air-Vent.jpg",
+        pre_captured_at: "2026-01-18T09:20:00Z",
+        post_image_url: "https://tse1.mm.bing.net/th/id/OIP.iqK7eCXZB4s6W5MGzLi-HwAAAA?rs=1&pid=ImgDetMain&o=7&rm=3",
+        post_thumbnail_url: "https://tse1.mm.bing.net/th/id/OIP.iqK7eCXZB4s6W5MGzLi-HwAAAA?rs=1&pid=ImgDetMain&o=7&rm=3",
+        post_captured_at: "2026-01-18T11:00:00Z",
+        notes: null,
+        created_at: now(),
+        updated_at: now(),
+      },
+    ],
   },
 };
 
@@ -241,6 +369,10 @@ function getJobList(status?: string, engineerId?: number): JobRow[] {
     },
     engineer: j.engineer ? { id: j.engineer.id, full_name: j.engineer.full_name } : null,
     scheduled_date: j.scheduled_date,
+    scheduled_start_time: j.scheduled_start_time,
+    scheduled_end_time: j.scheduled_end_time,
+    submitted_at: j.submitted_at,
+    review_notes: j.review_notes,
     created_at: j.created_at,
   }));
   return list.filter((j) => {
@@ -255,7 +387,13 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
   const url = path.startsWith("/") ? path : `/${path}`;
   const [pathname, query] = url.split("?");
   const params = new URLSearchParams(query || "");
-  const body = options.body ? JSON.parse(options.body as string) : {};
+  const rawBody = options.body;
+  const body =
+    rawBody instanceof FormData
+      ? rawBody
+      : typeof rawBody === "string"
+        ? JSON.parse(rawBody)
+        : {};
 
   // --- Auth: extract token from header (caller passes it like real fetch) ---
   const authHeader = (options.headers as Record<string, string>)?.Authorization;
@@ -346,17 +484,22 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
 
   // POST /jobs
   if (pathname === "/jobs" && method === "POST") {
-    const { title, description, site_id, template_id, engineer_id, scheduled_date } = body as {
+    const { title, description, site_id, template_id, engineer_id, scheduled_date, scheduled_start_time, scheduled_end_time } = body as {
       title?: string;
       description?: string | null;
       site_id?: number;
       template_id?: number;
       engineer_id?: number | null;
       scheduled_date?: string | null;
+      scheduled_start_time?: string | null;
+      scheduled_end_time?: string | null;
     };
 
     if (!title || !site_id || !template_id) {
       throw new Error("title, site_id and template_id are required");
+    }
+    if (scheduled_date && new Date(`${scheduled_date}T00:00:00`).getTime() < new Date(new Date().toISOString().slice(0, 10) + "T00:00:00").getTime()) {
+      throw new Error("scheduled_date cannot be in the past");
     }
 
     const site = mockSites.find((s) => s.id === Number(site_id));
@@ -369,6 +512,17 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       engineer_id === null || engineer_id === undefined
         ? null
         : users.find((u) => u.id === Number(engineer_id) && u.role === "engineer") ?? null;
+    if (engineer) {
+      if (!scheduled_start_time || !scheduled_end_time) {
+        throw new Error("scheduled_start_time and scheduled_end_time are required when engineer is assigned");
+      }
+      if (new Date(String(scheduled_start_time)).getTime() < Date.now()) {
+        throw new Error("scheduled_start_time cannot be before current time");
+      }
+      if (new Date(String(scheduled_end_time)).getTime() <= new Date(String(scheduled_start_time)).getTime()) {
+        throw new Error("scheduled_end_time must be after scheduled_start_time");
+      }
+    }
 
     const ts = now();
     const id = nextJobId++;
@@ -382,6 +536,8 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       description: description ?? null,
       status: engineer ? "assigned" : "draft",
       scheduled_date: scheduled_date ?? null,
+      scheduled_start_time: scheduled_start_time ?? null,
+      scheduled_end_time: scheduled_end_time ?? null,
       started_at: null,
       submitted_at: null,
       reviewed_at: null,
@@ -396,6 +552,7 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
         template_area_id: area.id,
         area_name: area.name,
         order_index: area.order_index,
+        photo_guidance: area.photo_guidance ?? null,
         pre_image_url: null,
         pre_thumbnail_url: null,
         pre_captured_at: null,
@@ -424,18 +581,37 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
     const job = mockJobDetails[id];
     if (!job) throw new Error("Job not found");
 
-    const { title, description, status, scheduled_date, engineer_id } = body as {
+    const { title, description, status, scheduled_date, scheduled_start_time, scheduled_end_time, engineer_id } = body as {
       title?: string;
       description?: string | null;
       status?: JobDetail["status"];
       scheduled_date?: string | null;
+      scheduled_start_time?: string | null;
+      scheduled_end_time?: string | null;
       engineer_id?: number | null;
     };
 
     if (title !== undefined) job.title = String(title).trim() || job.title;
     if (description !== undefined) job.description = description === null ? null : String(description);
-    if (status !== undefined) job.status = status;
-    if (scheduled_date !== undefined) job.scheduled_date = scheduled_date || null;
+    if (status !== undefined) {
+      job.status = status;
+      if (status === "submitted") {
+        job.submitted_at = now();
+      }
+    }
+    if (scheduled_date !== undefined) {
+      if (scheduled_date && new Date(`${scheduled_date}T00:00:00`).getTime() < new Date(new Date().toISOString().slice(0, 10) + "T00:00:00").getTime()) {
+        throw new Error("scheduled_date cannot be in the past");
+      }
+      job.scheduled_date = scheduled_date || null;
+    }
+    if (scheduled_start_time !== undefined) {
+      if (scheduled_start_time && new Date(String(scheduled_start_time)).getTime() < Date.now()) {
+        throw new Error("scheduled_start_time cannot be before current time");
+      }
+      job.scheduled_start_time = scheduled_start_time || null;
+    }
+    if (scheduled_end_time !== undefined) job.scheduled_end_time = scheduled_end_time || null;
 
     if (engineer_id !== undefined) {
       const engineer =
@@ -443,6 +619,16 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
           ? null
           : users.find((u) => u.id === Number(engineer_id) && u.role === "engineer") ?? null;
       job.engineer = engineer ? { id: engineer.id, full_name: engineer.full_name } : null;
+      if (engineer) {
+        const start = scheduled_start_time !== undefined ? scheduled_start_time : job.scheduled_start_time;
+        const end = scheduled_end_time !== undefined ? scheduled_end_time : job.scheduled_end_time;
+        if (!start || !end) {
+          throw new Error("scheduled_start_time and scheduled_end_time are required when engineer is assigned");
+        }
+        if (new Date(String(end)).getTime() <= new Date(String(start)).getTime()) {
+          throw new Error("scheduled_end_time must be after scheduled_start_time");
+        }
+      }
     }
 
     job.updated_at = now();
@@ -476,6 +662,88 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       job.reviewed_at = now();
     }
     return {};
+  }
+
+  // GET /jobs/:id/captures
+  const capturesListMatch = pathname.match(/^\/jobs\/(\d+)\/captures$/);
+  if (capturesListMatch && method === "GET") {
+    const id = capturesListMatch[1];
+    const job = mockJobDetails[id];
+    if (!job) throw new Error("Job not found");
+    const total = job.captures.length;
+    const done = job.captures.filter((c) => !!c.post_image_url).length;
+    return {
+      captures: job.captures,
+      completion_percentage: total > 0 ? Math.round((done / total) * 100) : 0,
+    };
+  }
+
+  // POST /jobs/:id/captures/:area_id/pre|post
+  const uploadCaptureMatch = pathname.match(/^\/jobs\/(\d+)\/captures\/(\d+)\/(pre|post)$/);
+  if (uploadCaptureMatch && method === "POST") {
+    const [, jobId, areaIdRaw, side] = uploadCaptureMatch;
+
+    const job = mockJobDetails[jobId];
+    if (!job) throw new Error("Job not found");
+    if (currentUser.role === "engineer" && job.engineer?.id !== currentUser.id) {
+      const err = new Error("Forbidden") as Error & { status?: number };
+      err.status = 403;
+      throw err;
+    }
+
+    const areaId = Number(areaIdRaw);
+    let capture = job.captures.find((c) => c.template_area_id === areaId);
+    if (!capture) {
+      const ts = now();
+      capture = {
+        id: nextCaptureId++,
+        job_id: Number(jobId),
+        template_area_id: areaId,
+        area_name: `Area ${areaId}`,
+        order_index: job.captures.length + 1,
+        photo_guidance: null,
+        pre_image_url: null,
+        pre_thumbnail_url: null,
+        pre_captured_at: null,
+        post_image_url: null,
+        post_thumbnail_url: null,
+        post_captured_at: null,
+        notes: null,
+        created_at: ts,
+        updated_at: ts,
+      };
+      job.captures.push(capture);
+    }
+
+    if (side === "post" && !capture.pre_image_url) {
+      throw new Error("Pre image must be uploaded before post image");
+    }
+
+    let imageUrl = "";
+    if (body instanceof FormData) {
+      const image = body.get("image");
+      if (!(image instanceof Blob)) throw new Error("image file is required");
+      imageUrl =
+        typeof URL !== "undefined" && typeof URL.createObjectURL === "function"
+          ? URL.createObjectURL(image)
+          : `data:image/jpeg;base64,`;
+    } else {
+      throw new Error("multipart/form-data required");
+    }
+
+    const ts = now();
+    if (side === "pre") {
+      capture.pre_image_url = imageUrl;
+      capture.pre_thumbnail_url = imageUrl;
+      capture.pre_captured_at = ts;
+    } else {
+      capture.post_image_url = imageUrl;
+      capture.post_thumbnail_url = imageUrl;
+      capture.post_captured_at = ts;
+    }
+    capture.updated_at = ts;
+    job.updated_at = ts;
+    return capture;
   }
 
   // GET /sites
@@ -851,7 +1119,8 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
 /** Same signature as apiFetch; used when NEXT_PUBLIC_USE_MOCK_API is true. */
 export async function mockApiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = typeof window !== "undefined" ? window.localStorage.getItem("token") : null;
-  const headers = { "Content-Type": "application/json", ...(options.headers as object) };
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+  const headers = { ...(isFormData ? {} : { "Content-Type": "application/json" }), ...(options.headers as object) };
   if (token) (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
 
   try {

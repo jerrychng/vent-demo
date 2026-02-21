@@ -95,6 +95,16 @@ export default function JobDetailPage() {
     );
   }
 
+  const canReview = job.status === "submitted";
+  const statusBadgeClass =
+    job.status === "rejected"
+      ? "bg-red-100 text-red-700"
+      : job.status === "approved"
+        ? "bg-green-100 text-green-700"
+        : job.status === "in_progress"
+          ? "bg-yellow-100 text-yellow-700"
+          : "bg-muted text-muted-foreground";
+
   return (
     <div className="space-y-4">
       <Button variant="ghost" size="sm" onClick={() => router.push("/jobs")} className="text-muted-foreground">
@@ -108,8 +118,8 @@ export default function JobDetailPage() {
               {job.title}{" "}
               <span className="ml-2 text-xs font-mono font-normal text-muted-foreground">{job.reference}</span>
             </CardTitle>
-            <span className="rounded-md bg-muted px-2 py-1 text-xs font-medium uppercase text-muted-foreground">
-              {job.status}
+            <span className={`rounded-md px-2 py-1 text-xs font-medium uppercase ${statusBadgeClass}`}>
+              {job.status.replace("_", " ")}
             </span>
           </div>
           <p className="text-sm text-muted-foreground">
@@ -120,6 +130,15 @@ export default function JobDetailPage() {
           </p>
           <p className="text-sm text-muted-foreground">
             Engineer: {job.engineer?.full_name ?? "Unassigned"}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Scheduled:
+            {" "}
+            {job.scheduled_start_time ? new Date(job.scheduled_start_time).toLocaleString() : "-"}
+            {" "}
+            to
+            {" "}
+            {job.scheduled_end_time ? new Date(job.scheduled_end_time).toLocaleString() : "-"}
           </p>
         </CardHeader>
       </Card>
@@ -162,6 +181,9 @@ export default function JobDetailPage() {
                     {capture.post_captured_at ? "Done" : "Incomplete"}
                   </span>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Photo guidance: {capture.photo_guidance?.trim() ? capture.photo_guidance : "No guidance provided"}
+                </p>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -199,16 +221,22 @@ export default function JobDetailPage() {
           ))}
       </section>
 
-      {job.status === "submitted" && (
-        <section className="flex gap-3">
-          <Button variant="destructive" onClick={() => setRejectOpen(true)} disabled={reviewing}>
-            Reject
-          </Button>
-          <Button onClick={() => setApproveOpen(true)} className="bg-highlight-green hover:bg-highlight-green/90" disabled={reviewing}>
-            Approve
-          </Button>
-        </section>
-      )}
+      <section className="flex gap-3">
+        <Button
+          variant="destructive"
+          onClick={() => setRejectOpen(true)}
+          disabled={reviewing || !canReview}
+        >
+          Reject
+        </Button>
+        <Button
+          onClick={() => setApproveOpen(true)}
+          className="bg-highlight-green hover:bg-highlight-green/90"
+          disabled={reviewing || !canReview}
+        >
+          Approve
+        </Button>
+      </section>
 
       <Dialog open={approveOpen} onOpenChange={setApproveOpen}>
         <DialogContent>
