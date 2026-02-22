@@ -107,7 +107,7 @@ export default function JobDetailPage() {
 
   return (
     <div className="space-y-4">
-      <Button variant="ghost" size="sm" onClick={() => router.push("/jobs")} className="text-muted-foreground">
+      <Button variant="transparent" size="sm" onClick={() => router.push("/jobs")} className="text-muted-foreground">
         <ArrowLeftIcon className="w-4 h-4 mr-2" /> Back to Jobs
       </Button>
 
@@ -223,7 +223,7 @@ export default function JobDetailPage() {
 
       <section className="flex gap-3">
         <Button
-          variant="destructive"
+          variant="outline"
           onClick={() => setRejectOpen(true)}
           disabled={reviewing || !canReview}
         >
@@ -288,7 +288,7 @@ export default function JobDetailPage() {
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={() => submitReview("reject")} disabled={reviewing}>
+            <Button variant="outline" onClick={() => submitReview("reject")} disabled={reviewing}>
               {reviewing ? "Rejecting..." : "Confirm Reject"}
             </Button>
           </DialogFooter>

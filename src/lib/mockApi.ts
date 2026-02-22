@@ -13,6 +13,8 @@ import type {
   TemplateListItem,
   UserListItem
 } from "@/types/models";
+import { getPasswordValidationError } from "@/lib/passwordValidation";
+import { getPhoneValidationError } from "@/lib/phoneValidation";
 
 // --- In-memory state ---
 let nextUserId = 1;
@@ -445,6 +447,8 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
     if (users.length > 0) throw new Error("Setup already completed");
     const { email, password, full_name } = body;
     if (!email || !password || !full_name) throw new Error("email, password and full_name required");
+    const passwordError = getPasswordValidationError(String(password));
+    if (passwordError) throw new Error(passwordError);
     const ts = new Date().toISOString();
     const user: User = {
       id: nextUserId++,
@@ -1081,6 +1085,10 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
     if (!email || !password || !full_name || !phone_number || !address) {
       throw new Error("email, password, full_name, phone_number, address required");
     }
+    const passwordError = getPasswordValidationError(String(password));
+    if (passwordError) throw new Error(passwordError);
+    const phoneError = getPhoneValidationError(String(phone_number));
+    if (phoneError) throw new Error(phoneError);
     const role = (requestedRole as UserRole) || "engineer";
     if (currentUser.role === "trade_manager" && role !== "engineer") {
       const err = new Error("Trade managers can only create engineers") as Error & { status?: number };

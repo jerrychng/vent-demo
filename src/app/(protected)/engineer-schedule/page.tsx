@@ -149,14 +149,14 @@ export default function EngineerSchedulePage() {
 
   return (
     <div className="pb-32">
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#3159a7] via-[#4068b2] to-[#89a4d7] pt-8 px-4 pb-4 text-white">
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-secondary to-secondary pt-8 px-4 pb-4 text-white">
         <div className="absolute right-0 top-3 h-20 w-20 rounded-full bg-white/15" />
         <div className="relative z-10 flex rounded-full border border-white/35 bg-white/10 p-1">
           {scheduleTabs.map((tab) => (
             <button
               key={tab.key}
               className={`flex-1 rounded-full py-2 text-sm font-semibold ${
-                activeTab === tab.key ? "bg-accent text-[#17325e]" : "text-white/90"
+                activeTab === tab.key ? "bg-accent text-dark-primary" : "text-white/90"
               }`}
               onClick={() => setActiveTab(tab.key)}
             >
@@ -166,32 +166,32 @@ export default function EngineerSchedulePage() {
         </div>
       </div>
 
-      <div className="rounded-b-[10px] border border-[#d8e6ff] border-t-0 bg-white p-4">
-        <p className="mb-3 flex items-center gap-2 text-sm font-medium text-[#8b94aa]">
+      <div className="rounded-b-[10px] border border-subtle border-t-0 bg-white p-4">
+        <p className="mb-3 flex items-center gap-2 text-sm font-medium text-text-dark-gray">
           <CircleDot className="h-4 w-4" />
           {filteredJobs.length} {scheduleTabs.find((tab) => tab.key === activeTab)?.label} Service Appointments
         </p>
 
-        {loading && <p className="text-sm text-[#68728c]">Loading schedule...</p>}
+        {loading && <p className="text-sm text-text-dark-gray">Loading schedule...</p>}
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         {!loading && !error && filteredJobs.length === 0 && (
-          <p className="text-sm text-[#68728c]">No scheduled jobs for this tab.</p>
+          <p className="text-sm text-text-dark-gray">No scheduled jobs for this tab.</p>
         )}
 
         <div className="space-y-3">
           {filteredJobs.map((item) => {
             const isCompleted = item.status === "approved";
             const badgeTone = isCompleted
-              ? "border-[#63cf52] bg-[#eef8ea]"
-              : "border-[#9eb3dc] bg-[#f5f8ff]";
-            const accentTone = isCompleted ? "text-[#52c41a]" : "text-[#27549d]";
-            const lineTone = isCompleted ? "border-[#52c41a]" : "border-[#27549d]";
+              ? "border-highlight-green bg-light-green"
+              : "border-subtle bg-background";
+            const accentTone = isCompleted ? "text-highlight-green" : "text-primary";
+            const lineTone = isCompleted ? "border-highlight-green" : "border-primary";
             return (
             <div
               key={item.id}
               className={`rounded-[10px] border p-3 shadow-[0_2px_4px_rgba(50,56,67,0.04)] ${
-                item.status === "rejected" ? "border-[var(--color-red)] bg-[var(--color-light-red)]" : "border-[#d8e6ff] bg-white"
+                item.status === "rejected" ? "border-[var(--color-red)] bg-[var(--color-light-red)]" : "border-subtle bg-white"
               } ${
                 activeTab === "ongoing" || activeTab === "upcoming" ? "cursor-pointer" : ""
               }`}
@@ -203,10 +203,10 @@ export default function EngineerSchedulePage() {
             >
               <div className="mb-2 flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-xl font-semibold text-[#2a4f97]">{item.title}</p>
+                  <p className="text-xl font-semibold text-dark-primary">{item.title}</p>
                 </div>
-                <div className={`rounded-[18px] border px-4 py-2 text-[#5f6884] ${badgeTone}`}>
-                  <div className="mt-1 flex items-start gap-2 text-sm leading-none text-[#5f6884]">
+                <div className={`rounded-[18px] border px-4 py-2 text-text-dark-gray ${badgeTone}`}>
+                  <div className="mt-1 flex items-start gap-2 text-sm leading-none text-text-dark-gray">
                     <div className={`mt-0.5 flex w-4 flex-col items-center ${accentTone}`}>
                       <Clock3 className="h-4 w-4" />
                       <span className={`my-1 h-1 border-l border-dashed ${lineTone}`} />
@@ -216,7 +216,7 @@ export default function EngineerSchedulePage() {
                       <p>{formatShortDate(item.scheduled_start_time ?? null)} {formatTime(item.scheduled_start_time ?? null)}</p>
                       <p>{formatShortDate(item.scheduled_end_time ?? null)} {formatTime(item.scheduled_end_time ?? null)}</p>
                       {(activeTab === "ongoing" || activeTab === "completed") && (
-                        <p className="text-xs text-[#6f7995]">
+                        <p className="text-xs text-text-dark-gray">
                           Submitted: {formatDateTime(item.submitted_at)}
                         </p>
                       )}
@@ -226,8 +226,8 @@ export default function EngineerSchedulePage() {
               </div>
 
               <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1 text-[#68728c]">
-                  <p className={`text-sm font-bold ${item.status === "rejected" ? "text-red-600" : "text-[#68728c]"}`}>
+                <div className="space-y-1 text-text-dark-gray">
+                  <p className={`text-sm font-bold ${item.status === "rejected" ? "text-red-600" : "text-text-dark-gray"}`}>
                     {item.status === "rejected"
                       ? _.capitalize("rejected")
                       : _.capitalize(item.status.replace("_", " "))}
@@ -239,16 +239,16 @@ export default function EngineerSchedulePage() {
                   )}
                   <div className="flex flex-col gap-2">
                     <p className="inline-flex items-center gap-2 text-base">
-                      <FileText className="h-4 w-4 text-[#27549d]" />
+                      <FileText className="h-4 w-4 text-primary" />
                       {item.reference}
                     </p>
                     <p className="inline-flex items-center gap-2 text-base">
-                      <User className="h-4 w-4 text-[#27549d]" />
+                      <User className="h-4 w-4 text-primary" />
                       {item.engineer?.full_name ?? user.full_name}
                     </p>
                   </div>
                   <p className="inline-flex items-center gap-2 text-base">
-                    <MapPin className="h-4 w-4 text-[#27549d]" />
+                    <MapPin className="h-4 w-4 text-primary" />
                     {getLocation(item) || "No location"}
                   </p>
                 </div>
@@ -264,3 +264,4 @@ export default function EngineerSchedulePage() {
     </div>
   );
 }
+

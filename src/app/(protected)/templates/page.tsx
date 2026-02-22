@@ -250,7 +250,7 @@ export default function TemplatesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Templates</h1>
         {canManageTemplates && (
-          <Button variant={showForm ? "outline" : "default"} onClick={() => setShowForm((v) => !v)}>
+          <Button variant={showForm ? "outline" : "primary"} onClick={() => setShowForm((v) => !v)}>
             {showForm ? "Cancel" : (<><Plus className="h-4 w-4" />Create template</>)}
           </Button>
         )}
@@ -290,7 +290,7 @@ export default function TemplatesPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>Areas</Label>
-                  <Button type="button" variant="link" size="sm" className="h-auto p-0" onClick={addArea}>
+                  <Button type="button" variant="transparent" size="sm" className="h-auto p-0" onClick={addArea}>
                     + Add area
                   </Button>
                 </div>
@@ -339,7 +339,7 @@ export default function TemplatesPage() {
                         />
                       </div>
                       <div className="flex justify-end">
-                        <Button type="button" variant="destructive" size="sm" onClick={() => removeArea(i)}>
+                        <Button type="button" variant="outline" size="sm" onClick={() => removeArea(i)}>
                           Remove
                         </Button>
                       </div>
@@ -376,7 +376,7 @@ export default function TemplatesPage() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button
-                      variant="ghost"
+                      variant="transparent"
                       size="sm"
                       className="bg-accent text-accent-foreground hover:bg-accent/90"
                       disabled={loadingDetail}
@@ -395,7 +395,7 @@ export default function TemplatesPage() {
                           Edit
                         </Button>
                         <Button
-                          variant="destructive"
+                          variant="outline"
                           size="sm"
                           onClick={() => setDeletingTemplate(t)}
                         >
@@ -498,7 +498,7 @@ export default function TemplatesPage() {
                 <Label>Areas</Label>
                 <Button
                   type="button"
-                  variant="link"
+                  variant="transparent"
                   size="sm"
                   className="h-auto p-0"
                   onClick={() => setEditAreas((prev) => [...prev, { name: "", order_index: String(prev.length + 1), photo_guidance: "" }])}
@@ -553,7 +553,7 @@ export default function TemplatesPage() {
                     <div className="flex justify-end">
                       <Button
                         type="button"
-                        variant="destructive"
+                        variant="outline"
                         size="sm"
                         onClick={() => removeEditArea(i)}
                       >
@@ -588,7 +588,7 @@ export default function TemplatesPage() {
             <Button type="button" variant="outline" onClick={() => setDeletingTemplate(null)} disabled={deleting}>
               Cancel
             </Button>
-            <Button type="button" variant="destructive" onClick={handleDeleteTemplate} disabled={deleting}>
+            <Button type="button" variant="outline" onClick={handleDeleteTemplate} disabled={deleting}>
               {deleting ? "Deleting..." : "Delete"}
             </Button>
           </div>
@@ -597,3 +597,4 @@ export default function TemplatesPage() {
     </div>
   );
 }
+

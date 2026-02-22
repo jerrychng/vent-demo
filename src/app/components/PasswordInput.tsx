@@ -34,7 +34,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   error,
   label,
   validatePassword: shouldValidate = false,
-  labelClassName = "text-[#646F86]",
+  labelClassName = "text-text-dark-gray",
   variant = "default",
   onValidationChange,
 }) => {
@@ -148,3 +148,4 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
 };
 
 export default PasswordInput;
+

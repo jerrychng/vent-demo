@@ -43,6 +43,11 @@ function SidebarContent({
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
+  const normalizedPath = pathname.replace(/\/+$/, "") || "/";
+  const isDashboardActive =
+    user.role === "engineer"
+      ? normalizedPath.startsWith("/engineer-home")
+      : normalizedPath.startsWith("/dashboard");
 
   return (
     <>
@@ -64,38 +69,34 @@ function SidebarContent({
       <nav className="flex-1 space-y-1 text-sm">
         <Link href={user.role === "engineer" ? "/engineer-home" : "/dashboard"} onClick={onNavClick}>
           <Button
-            variant="ghost"
-            className={
-              pathname === "/dashboard" || pathname === "/engineer-home"
-                ? sidebarNavActiveClass
-                : sidebarNavClass
-            }
+            variant="transparent"
+            className={isDashboardActive ? sidebarNavActiveClass : sidebarNavClass}
           >
             <LayoutDashboard className="h-4 w-4" />
             {user.role === "engineer" ? "Home" : "Dashboard"}
           </Button>
         </Link>
         <Link href="/jobs" onClick={onNavClick}>
-          <Button variant="ghost" className={pathname.startsWith("/jobs") ? sidebarNavActiveClass : sidebarNavClass}>
+          <Button variant="transparent" className={pathname.startsWith("/jobs") ? sidebarNavActiveClass : sidebarNavClass}>
             <BriefcaseBusiness className="h-4 w-4" />
             Jobs
           </Button>
         </Link>
           <Link href="/templates" onClick={onNavClick}>
-            <Button variant="ghost" className={pathname.startsWith("/templates") ? sidebarNavActiveClass : sidebarNavClass}>
+            <Button variant="transparent" className={pathname.startsWith("/templates") ? sidebarNavActiveClass : sidebarNavClass}>
               <FileText className="h-4 w-4" />
               Templates
             </Button>
           </Link>
           <Link href="/sites" onClick={onNavClick}>
-            <Button variant="ghost" className={pathname.startsWith("/sites") ? sidebarNavActiveClass : sidebarNavClass}>
+            <Button variant="transparent" className={pathname.startsWith("/sites") ? sidebarNavActiveClass : sidebarNavClass}>
               <Building2 className="h-4 w-4" />
               Sites
             </Button>
           </Link>
           {(user.role === "super_admin" || user.role === "trade_manager") && (
             <Link href="/users" onClick={onNavClick}>
-              <Button variant="ghost" className={pathname.startsWith("/users") ? sidebarNavActiveClass : sidebarNavClass}>
+              <Button variant="transparent" className={pathname.startsWith("/users") ? sidebarNavActiveClass : sidebarNavClass}>
                 <Users className="h-4 w-4" />
                 Engineers
               </Button>
@@ -103,7 +104,7 @@ function SidebarContent({
           )}
           {user.role === "super_admin" && (
             <Link href="/trade-managers" onClick={onNavClick}>
-              <Button variant="ghost" className={pathname.startsWith("/trade-managers") ? sidebarNavActiveClass : sidebarNavClass}>
+              <Button variant="transparent" className={pathname.startsWith("/trade-managers") ? sidebarNavActiveClass : sidebarNavClass}>
                 <UserCog className="h-4 w-4" />
                 Trade Managers
               </Button>
@@ -111,7 +112,7 @@ function SidebarContent({
           )}
       </nav>
       <Button
-        variant="ghost"
+        variant="transparent"
         size="sm"
         className="mt-4 justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         onClick={onLogout}
@@ -177,7 +178,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
         <header className="shrink-0 flex items-center gap-2 h-14 px-4 border-b border-sidebar-border bg-sidebar text-sidebar-foreground">
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Open menu">
+              <Button variant="transparent" size="sm" aria-label="Open menu">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -197,3 +198,4 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
+

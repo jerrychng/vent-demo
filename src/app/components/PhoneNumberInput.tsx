@@ -36,7 +36,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   error,
   name = "phone",
   validateOnChange = true,
-  labelClassName = "text-[#646F86]",
+  labelClassName = "text-text-dark-gray",
   variant = "default",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -312,3 +312,4 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
 };
 
 export default PhoneNumberInput;
+

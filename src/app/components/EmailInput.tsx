@@ -33,7 +33,7 @@ const EmailInput: React.FC<EmailInputProps> = ({
   name = "email",
   error,
   label,
-  labelClassName = "text-[#646F86]",
+  labelClassName = "text-text-dark-gray",
   validateEmail: shouldValidate = true,
   variant = "default",
   errorMessageDisplay = true,
@@ -156,3 +156,4 @@ const EmailInput: React.FC<EmailInputProps> = ({
 };
 
 export default EmailInput;
+

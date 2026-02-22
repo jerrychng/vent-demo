@@ -24,7 +24,7 @@ const HeroBanner: React.FC<HeroBannerProps> = ({
       role="img"
       aria-label={`${title} header`}
     >
-      <div className="absolute inset-0 pointer-events-none bg-[#27549D]/50" />
+      <div className="absolute inset-0 pointer-events-none bg-primary/50" />
       <div className="p-8 flex items-end">
         <p className="text-accent text-xl leading-none z-50 flex gap-2 items-center">
           <SvgIcon svg={icon} size={20} className="inline-block" />

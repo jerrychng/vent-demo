@@ -2,11 +2,14 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { getPasswordValidationError, PASSWORD_POLICY } from "@/lib/passwordValidation";
+import { getPhoneValidationError, PHONE_POLICY } from "@/lib/phoneValidation";
 import type { User, UserListItem, UsersResponse } from "@/types/models";
 import { type FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordField } from "@/components/ui/password-field";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -40,6 +43,8 @@ export default function TradeManagersPage() {
     phone_number: "",
     address: "",
   });
+  const passwordError = getPasswordValidationError(form.password);
+  const phoneError = getPhoneValidationError(form.phone_number);
 
   useEffect(() => {
     if (!user || !isSuperAdmin) return;
@@ -63,6 +68,14 @@ export default function TradeManagersPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
+    if (phoneError) {
+      setError(phoneError);
+      return;
+    }
     setError(null);
     setSubmitting(true);
     try {
@@ -108,7 +121,7 @@ export default function TradeManagersPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Trade Managers</h1>
-        <Button variant={showForm ? "outline" : "default"} onClick={() => setShowForm((v) => !v)}>
+        <Button variant={showForm ? "outline" : "primary"} onClick={() => setShowForm((v) => !v)}>
           {showForm ? "Cancel" : "Create trade manager"}
         </Button>
       </div>
@@ -147,14 +160,20 @@ export default function TradeManagersPage() {
                 </div>
                 <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="password">Password <span className="text-destructive">*</span></Label>
-                  <Input
+                  <PasswordField
                     id="password"
                     required
-                    type="password"
-                    minLength={6}
+                    minLength={PASSWORD_POLICY.minLength}
+                    maxLength={PASSWORD_POLICY.maxLength}
                     value={form.password}
                     onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Use {PASSWORD_POLICY.minLength}-{PASSWORD_POLICY.maxLength} characters with uppercase, lowercase, number, and special character.
+                  </p>
+                  {form.password && passwordError && (
+                    <p className="text-xs text-destructive" role="alert">{passwordError}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone_number">Phone number <span className="text-destructive">*</span></Label>
@@ -162,9 +181,17 @@ export default function TradeManagersPage() {
                     id="phone_number"
                     required
                     type="tel"
+                    inputMode="tel"
+                    maxLength={25}
                     value={form.phone_number}
                     onChange={(e) => setForm((f) => ({ ...f, phone_number: e.target.value }))}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Enter {PHONE_POLICY.minDigits}-{PHONE_POLICY.maxDigits} digits (you may use +, spaces, -, and parentheses).
+                  </p>
+                  {form.phone_number && phoneError && (
+                    <p className="text-xs text-destructive" role="alert">{phoneError}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="address">Address <span className="text-destructive">*</span></Label>
@@ -176,7 +203,7 @@ export default function TradeManagersPage() {
                   />
                 </div>
               </div>
-              <Button type="submit" disabled={submitting}>
+              <Button type="submit" disabled={submitting || !!passwordError || !!phoneError}>
                 {submitting ? "Creating..." : "Create trade manager"}
               </Button>
             </form>
@@ -207,7 +234,7 @@ export default function TradeManagersPage() {
                 <TableCell className="text-right align-top">
                   <div className="flex justify-end gap-2">
                     <Button
-                      variant="ghost"
+                      variant="transparent"
                       size="sm"
                       className="bg-accent text-accent-foreground hover:bg-accent/90"
                       disabled={loadingDetail}
@@ -254,3 +281,4 @@ export default function TradeManagersPage() {
     </div>
   );
 }
+

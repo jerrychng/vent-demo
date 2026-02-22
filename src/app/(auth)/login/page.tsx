@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordField } from "@/components/ui/password-field";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -40,7 +41,7 @@ export default function LoginPage() {
       className="min-h-screen flex items-center justify-center py-5 px-3.5 bg-cover bg-center bg-[url('/assets/background.jpg')]"
     >
       <div
-        className="w-full max-w-96 rounded-[1.125rem] p-6 text-center text-[#17325e] bg-white border border-[#d8e6ff] shadow-[0_18px_32px_rgba(23,50,94,0.18)]"
+        className="w-[24rem] max-w-[calc(100vw-1.75rem)] rounded-[1.125rem] p-6 text-center text-dark-primary bg-white border border-subtle shadow-[0_18px_32px_rgba(23,50,94,0.18)]"
       >
         <div className="mb-6">
           <img
@@ -50,7 +51,7 @@ export default function LoginPage() {
           />
         </div>
         <h1 className="text-2xl font-bold leading-tight mb-1.5">Chumley Navigator for Vent Hygiene</h1>
-        <p className="text-sm text-[#17325e]/75 mb-5">Sign in to access the dashboard</p>
+        <p className="text-sm text-dark-primary/75 mb-5">Sign in to access the dashboard</p>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
           {error && (
@@ -59,23 +60,22 @@ export default function LoginPage() {
             </p>
           )}
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-[#17325e]">Email</Label>
+            <Label htmlFor="email" className="text-dark-primary">Email</Label>
             <Input
               id="email"
               type="email"
               placeholder="you@example.com"
-              className="border-[#D8E6FF] bg-white text-[#17325e] placeholder:text-[#17325e]/60"
+              className="border-subtle bg-white text-dark-primary placeholder:text-dark-primary/60"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-[#17325e]">Password</Label>
-            <Input
+            <Label htmlFor="password" className="text-dark-primary">Password</Label>
+            <PasswordField
               id="password"
-              type="password"
-              className="border-[#D8E6FF] bg-white text-[#17325e] placeholder:text-[#17325e]/60"
+              className="border-subtle bg-white text-dark-primary placeholder:text-dark-primary/60"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -83,7 +83,7 @@ export default function LoginPage() {
           </div>
           <Button
             type="submit"
-            className="w-full min-h-11 bg-[var(--color-primary)] text-white hover:bg-[#17325e]"
+            className="w-full min-h-11 bg-primary text-white hover:bg-dark-primary"
             disabled={loading}
           >
             {loading ? "Signing in..." : "Sign in"}
@@ -91,8 +91,8 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-6 text-sm text-gray-500"> 📞 Chumley AI - +441908024199</p>
-        <p className="mt-4 text-sm text-[#17325e]/80">
-          <Link href="/setup" className="text-[#17325e] hover:underline">
+        <p className="mt-4 text-sm text-dark-primary/80">
+          <Link href="/setup" className="text-dark-primary hover:underline">
             Super Admin Sign Up
           </Link>
         </p>
@@ -100,3 +100,5 @@ export default function LoginPage() {
     </main>
   );
 }
+
+

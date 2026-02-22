@@ -308,7 +308,7 @@ export default function JobsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Jobs</h1>
         {canManageJobs && (
-          <Button variant={showForm ? "outline" : "default"} onClick={() => setShowForm((v) => !v)}>
+          <Button variant={showForm ? "outline" : "primary"} onClick={() => setShowForm((v) => !v)}>
             {showForm ? (
               "Cancel"
             ) : (
@@ -527,7 +527,7 @@ export default function JobsPage() {
                   <div className="flex justify-end gap-2">
                     <Button
                       size="sm"
-                      variant="ghost"
+                      variant="transparent"
                       className="bg-accent text-accent-foreground hover:bg-accent/90"
                       onClick={(event) => {
                         event.stopPropagation();
@@ -551,7 +551,7 @@ export default function JobsPage() {
                         </Button>
                         <Button
                           size="sm"
-                          variant="destructive"
+                          variant="outline"
                           onClick={(event) => {
                             event.stopPropagation();
                             setDeletingJob(job);
@@ -692,7 +692,7 @@ export default function JobsPage() {
             <Button type="button" variant="outline" onClick={() => setDeletingJob(null)} disabled={deleting}>
               Cancel
             </Button>
-            <Button type="button" variant="destructive" onClick={handleDeleteJob} disabled={deleting}>
+            <Button type="button" variant="outline" onClick={handleDeleteJob} disabled={deleting}>
               {deleting ? "Deleting..." : "Delete"}
             </Button>
           </div>
@@ -701,3 +701,4 @@ export default function JobsPage() {
     </div>
   );
 }
+

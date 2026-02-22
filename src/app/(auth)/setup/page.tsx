@@ -9,9 +9,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
+import { getPasswordValidationError, PASSWORD_POLICY } from "@/lib/passwordValidation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordField } from "@/components/ui/password-field";
 
 type SetupResponse = {
   id: number;
@@ -27,9 +29,16 @@ export default function SetupPage() {
   const [full_name, setFullName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const passwordError = getPasswordValidationError(password);
+  const canSubmit = !loading && !passwordError;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    const validationError = getPasswordValidationError(password);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
@@ -52,7 +61,7 @@ export default function SetupPage() {
       className="min-h-screen flex items-center justify-center py-5 px-3.5 bg-cover bg-center bg-[url('/assets/background.jpg')]"
     >
       <div
-        className="w-full max-w-96 rounded-[1.125rem] p-6 text-center text-[#17325e] bg-white border border-[#d8e6ff] shadow-[0_18px_32px_rgba(23,50,94,0.18)]"
+        className="w-[24rem] max-w-[calc(100vw-1.75rem)] rounded-[1.125rem] p-6 text-center text-dark-primary bg-white border border-subtle shadow-[0_18px_32px_rgba(23,50,94,0.18)]"
       >
         <div className="mb-6">
           <img
@@ -62,55 +71,62 @@ export default function SetupPage() {
           />
         </div>
         <h1 className="text-2xl font-bold leading-tight mb-1.5">Create Super Admin Account</h1>
-        <p className="text-sm text-[#17325e]/75 mb-5">Initial setup for first system access</p>
+        <p className="text-sm text-dark-primary/75 mb-5">Initial setup for first system access</p>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-left">
           {error && <p className="text-sm font-medium text-destructive" role="alert">{error}</p>}
           <div className="space-y-2">
-            <Label htmlFor="full_name" className="text-[#17325e]">Full name</Label>
+            <Label htmlFor="full_name" className="text-dark-primary">Full name</Label>
             <Input
               id="full_name"
               type="text"
-              className="border-[#D8E6FF] bg-white text-[#17325e] placeholder:text-[#17325e]/60"
+              className="border-subtle bg-white text-dark-primary placeholder:text-dark-primary/60"
               value={full_name}
               onChange={(e) => setFullName(e.target.value)}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-[#17325e]">Email</Label>
+            <Label htmlFor="email" className="text-dark-primary">Email</Label>
             <Input
               id="email"
               type="email"
-              className="border-[#D8E6FF] bg-white text-[#17325e] placeholder:text-[#17325e]/60"
+              className="border-subtle bg-white text-dark-primary placeholder:text-dark-primary/60"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-[#17325e]">Password</Label>
-            <Input
+            <Label htmlFor="password" className="text-dark-primary">Password</Label>
+            <PasswordField
               id="password"
-              type="password"
-              className="border-[#D8E6FF] bg-white text-[#17325e] placeholder:text-[#17325e]/60"
+              className="border-subtle bg-white text-dark-primary placeholder:text-dark-primary/60"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              maxLength={PASSWORD_POLICY.maxLength}
+              minLength={PASSWORD_POLICY.minLength}
               required
             />
+            <p className="text-xs text-dark-primary/70">
+              Use {PASSWORD_POLICY.minLength}-{PASSWORD_POLICY.maxLength} characters with uppercase, lowercase, number, and special character.
+            </p>
+            {password && passwordError && (
+              <p className="text-xs text-destructive" role="alert">{passwordError}</p>
+            )}
           </div>
           <Button
             type="submit"
-            disabled={loading}
-            className="w-full min-h-11 bg-[var(--color-primary)] text-white hover:bg-[#17325e]"
+            disabled={!canSubmit}
+            className="w-full min-h-11 bg-primary text-white hover:bg-dark-primary"
           >
             {loading ? "Creating account..." : "Create super admin"}
           </Button>
         </form>
 
         <p className="mt-6 text-sm text-gray-500"> 📞 Chumley AI - +441908024199</p>
-        <p className="mt-4 text-sm text-[#17325e]/80">
-          <Link href="/login" className="text-[#17325e] hover:underline">
+        <p className="mt-4 text-sm text-dark-primary/80">
+          <Link href="/login" className="text-dark-primary hover:underline">
             Back to login
           </Link>
         </p>

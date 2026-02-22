@@ -213,7 +213,7 @@ export default function SitesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Sites</h1>
         {canManageSites && (
-          <Button variant={showForm ? "outline" : "default"} onClick={() => setShowForm((v) => !v)}>
+          <Button variant={showForm ? "outline" : "primary"} onClick={() => setShowForm((v) => !v)}>
             {showForm ? (
               "Cancel"
             ) : (
@@ -325,7 +325,7 @@ export default function SitesPage() {
                 <TableCell className="text-right align-top">
                   <div className="flex justify-end gap-2">
                     <Button
-                      variant="ghost"
+                      variant="transparent"
                       size="sm"
                       className="bg-accent text-accent-foreground hover:bg-accent/90"
                       disabled={loadingDetail}
@@ -338,7 +338,7 @@ export default function SitesPage() {
                         <Button variant="outline" size="sm" className="hover:bg-transparent hover:text-foreground" onClick={() => startEditSite(site)}>
                           Edit
                         </Button>
-                        <Button variant="destructive" size="sm" onClick={() => setDeletingSite(site)}>
+                        <Button variant="outline" size="sm" onClick={() => setDeletingSite(site)}>
                           Delete
                         </Button>
                       </>
@@ -469,7 +469,7 @@ export default function SitesPage() {
             <Button type="button" variant="outline" onClick={() => setDeletingSite(null)} disabled={deleting}>
               Cancel
             </Button>
-            <Button type="button" variant="destructive" onClick={handleDeleteSite} disabled={deleting}>
+            <Button type="button" variant="outline" onClick={handleDeleteSite} disabled={deleting}>
               {deleting ? "Deleting..." : "Delete"}
             </Button>
           </div>
@@ -478,3 +478,4 @@ export default function SitesPage() {
     </div>
   );
 }
+

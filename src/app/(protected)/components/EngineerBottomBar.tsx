@@ -42,7 +42,7 @@ export default function EngineerBottomBar({ active }: EngineerBottomBarProps) {
 
   return (
     <div
-      className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-md border-t border-[#d8e6ff] bg-white px-3 pt-3 shadow-[0_-6px_18px_rgba(23,50,94,0.08)]"
+      className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-md border-t border-subtle bg-white px-3 pt-3 shadow-[0_-6px_18px_rgba(23,50,94,0.08)]"
       style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
     >
       <div className={`grid overflow-hidden ${visibleNavItems.length === 3 ? "grid-cols-3" : "grid-cols-4"}`}>
@@ -54,7 +54,7 @@ export default function EngineerBottomBar({ active }: EngineerBottomBarProps) {
               type="button"
               onClick={() => router.push(item.route)}
               className={`flex flex-col items-center gap-1 rounded-[8px] py-3 ${
-                isActive ? "bg-[#f1ff24]/45 text-[#17325e]" : "text-[#848EA3]"
+                isActive ? "bg-accent/45 text-dark-primary" : "text-text-dark-gray"
               }`}
             >
               <NavIcon iconPath={item.icon} />
@@ -66,3 +66,4 @@ export default function EngineerBottomBar({ active }: EngineerBottomBarProps) {
     </div>
   );
 }
+

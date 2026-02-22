@@ -160,7 +160,7 @@ export default function DashboardPage() {
                   <TableCell className="text-right">
                     <Button
                       size="sm"
-                      variant="ghost"
+                      variant="transparent"
                       className="bg-accent text-accent-foreground hover:bg-accent/90"
                       onClick={(event) => {
                         event.stopPropagation();
@@ -186,4 +186,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
 

@@ -16,7 +16,7 @@ export default function HomePage() {
   }, [router]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#27549d]">
+    <main className="relative min-h-screen overflow-hidden bg-primary">
       <div className="md:hidden">
         <Image
           src="/assets/Splash.png"
@@ -32,7 +32,7 @@ export default function HomePage() {
         className="relative hidden min-h-screen md:flex items-center justify-center bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/assets/background.jpg')" }}
       >
-        <div className="absolute inset-0 bg-[#17325e]/30" />
+        <div className="absolute inset-0 bg-dark-primary/30" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_25%,rgba(255,255,255,0.18),transparent_45%)]" />
         <Image
           src="/assets/VanAspect.png"
@@ -56,3 +56,4 @@ export default function HomePage() {
     </main>
   );
 }
+

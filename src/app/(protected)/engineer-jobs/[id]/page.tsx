@@ -158,7 +158,7 @@ export default function EngineerJobDetailPage() {
 
   return (
     <div className="space-y-4 pb-24 px-[20px]">
-      <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => router.push("/engineer-schedule")}>
+      <Button variant="transparent" size="sm" className="text-muted-foreground" onClick={() => router.push("/engineer-schedule")}>
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to schedule
       </Button>
