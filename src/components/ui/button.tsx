@@ -5,36 +5,35 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-semibold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "rounded-lg hover:cursor-pointer inline-flex flex-nowrap flex-row justify-center items-center min-w-fit gap-2 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 disabled:bg-background disabled:text-text-dark-gray disabled:opacity-70 disabled:cursor-not-allowed disabled:border-gray",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        primary: "border border-primary bg-primary text-accent hover:bg-dark-primary",
+        default: "border border-primary bg-primary text-accent",
+        primary: "border border-primary bg-primary text-accent",
         primaryOutline:
           "border border-primary text-dark-primary hover:bg-primary hover:text-accent",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline: "border border-gray-300 text-gray-700",
+        secondary: "bg-gray-600 text-white",
         green: "border border-highlight-green bg-light-green text-dark-green",
-        transparent: "bg-transparent text-dark-primary hover:bg-accent",
+        transparent: "bg-transparent text-dark-primary",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-5 py-2 text-base",
-        md: "h-10 px-5 py-2 text-base",
-        sm: "h-9 rounded-md px-3 text-sm",
-        lg: "h-11 rounded-md px-8 text-base font-bold",
-        icon: "h-10 w-10",
+        default: "px-5 py-3 font-semibold",
+        md: "px-5 py-3 font-semibold",
+        sm: "px-3 py-2 text-sm font-semibold",
+        lg: "px-8 py-3 rounded-xl font-bold",
+        icon: "size-10 p-0",
+        "icon-sm": "size-8 p-0",
+        "icon-lg": "size-12 p-0",
       },
     },
     defaultVariants: {
-      variant: "default",
-      size: "default",
+      variant: "primary",
+      size: "md",
     },
   }
 )

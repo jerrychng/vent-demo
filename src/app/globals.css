@@ -224,6 +224,36 @@ body {
     cursor: pointer;
   }
 
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear {
+    display: none;
+  }
+
+  .password-field-wrapper {
+    position: relative;
+  }
+
+  .password-toggle-button {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted-foreground);
+    transition: color 0.15s ease;
+  }
+
+  .password-toggle-button:hover {
+    color: var(--foreground);
+  }
+
+  .password-toggle-button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--ring));
+    border-radius: 0.375rem;
+  }
 }
 
 
