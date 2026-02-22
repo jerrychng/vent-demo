@@ -130,7 +130,6 @@ export default function DashboardPage() {
               {pending.map((job) => (
                 <TableRow
                   key={job.id}
-                  className="cursor-pointer"
                   onClick={() => router.push(`/jobs/${job.id}`)}
                 >
                   <TableCell className="font-mono">{job.reference}</TableCell>
