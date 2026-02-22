@@ -111,13 +111,13 @@ const AddressSearchBar: React.FC<AddressSearchBarProps> = ({ onSelect }) => {
         <p className="text-sm text-gray-500 px-4">Searching...</p>
       )}
       {showSuggestions && suggestions.length > 0 && (
-        <div className="mx-4 -translate-y-3 bg-white border border-gray-200 rounded-md max-h-56 overflow-auto z-20 shadow-lg">
+        <div className="mx-4 -translate-y-3 bg-white border border-subtle rounded-md max-h-56 overflow-auto z-20 shadow-lg">
           {suggestions.map((suggestion, index) => (
             <button
               key={suggestion.Id || index}
               type="button"
               onClick={() => handleSelectSuggestion(suggestion)}
-              className="w-full text-left px-4 py-2 hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+              className="w-full text-left px-4 py-2 hover:bg-gray-100 border-b border-subtle last:border-b-0"
             >
               <span className="text-sm text-gray-900">{suggestion.Text}</span>
             </button>

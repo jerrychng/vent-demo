@@ -84,7 +84,7 @@ const TextInput: React.FC<TextInputProps> = ({
   // Define variant styles
   const variantStyles = {
     default: {
-      borderColor: "border-gray-300",
+      borderColor: "border-subtle",
       backgroundColor: "bg-white",
       textColor: "text-dark-primary",
       focusRing: "focus:ring-primary",
@@ -119,7 +119,7 @@ const TextInput: React.FC<TextInputProps> = ({
       : styles.textColor;
 
   const borderColor = disabled
-    ? "border-gray-300"
+    ? "border-subtle"
     : error || validationError
       ? "border-highlight-red"
       : styles.borderColor;

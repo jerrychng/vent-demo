@@ -26,7 +26,34 @@ import {
   TableRow, 
 } from "@/components/ui/table";
 
-type AreaRow = { name: string; order_index: string; photo_guidance: string };
+type AreaRow = { id?: number; name: string; order_index: string; photo_guidance: string };
+
+function getTemplateValidationError(templateName: string, rows: AreaRow[]): string | null {
+  if (!templateName.trim()) return "Template name is required.";
+
+  const areaList = rows.filter((a) => a.name.trim());
+  if (areaList.length === 0) return "Add at least one area.";
+
+  const parsedOrders = areaList.map((area) => Number.parseInt(area.order_index, 10));
+  if (parsedOrders.some((order) => !Number.isFinite(order) || order <= 0)) {
+    return "Each area order must be a positive number.";
+  }
+
+  const uniqueOrders = new Set(parsedOrders);
+  if (uniqueOrders.size !== parsedOrders.length) {
+    return "Each area must have a unique order number.";
+  }
+
+  return null;
+}
+
+function formatLastEdited(updatedAt?: string, createdAt?: string): string {
+  const value = updatedAt || createdAt;
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleString();
+}
 
 export default function TemplatesPage() {
   const { user, loading } = useAuth();
@@ -52,6 +79,8 @@ export default function TemplatesPage() {
     is_active: true,
   });
   const [editAreas, setEditAreas] = useState<AreaRow[]>([{ name: "", order_index: "1", photo_guidance: "" }]);
+  const [originalEditAreaIds, setOriginalEditAreaIds] = useState<number[]>([]);
+  const editTemplateValidationError = getTemplateValidationError(editForm.name, editAreas);
 
   function parseOrderIndex(value: string, fallback: number): number {
     const parsed = Number.parseInt(value, 10);
@@ -137,12 +166,14 @@ export default function TemplatesPage() {
               .slice()
               .sort((a, b) => a.order_index - b.order_index)
               .map((a) => ({
+                id: a.id,
                 name: a.name ?? "",
                 order_index: String(a.order_index),
                 photo_guidance: a.photo_guidance ?? "",
               }))
           : [{ name: "", order_index: "1", photo_guidance: "" }]
       );
+      setOriginalEditAreaIds(detail.areas.map((a) => a.id));
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load template for editing");
     }
@@ -151,38 +182,61 @@ export default function TemplatesPage() {
   async function handleUpdateTemplate(e: FormEvent) {
     e.preventDefault();
     if (!editingTemplate) return;
+    if (editTemplateValidationError) {
+      setError(editTemplateValidationError);
+      return;
+    }
     setError(null);
     const areaList = editAreas.filter((a) => a.name.trim());
-    if (!editForm.name.trim()) {
-      setError("Template name is required");
-      return;
-    }
-    if (areaList.length === 0) {
-      setError("Add at least one area");
-      const t = toast({ title: "Ensure at least one area." });
-      setTimeout(() => t.dismiss(), 4000);
-      return;
-    }
     setSavingEdit(true);
     try {
       await apiFetch(`/templates/${editingTemplate.id}`, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify({
           name: editForm.name.trim(),
           description: editForm.description.trim() || null,
           is_active: editForm.is_active,
-          areas: areaList.map((a, i) => ({
-            name: a.name.trim(),
-            order_index: parseOrderIndex(a.order_index, i + 1),
-            photo_guidance: a.photo_guidance.trim() || null,
-          })),
         }),
       });
+
+      const currentAreaIds = areaList
+        .map((area) => area.id)
+        .filter((id): id is number => typeof id === "number");
+      const removedAreaIds = originalEditAreaIds.filter((id) => !currentAreaIds.includes(id));
+
+      for (const areaId of removedAreaIds) {
+        await apiFetch(`/templates/${editingTemplate.id}/areas/${areaId}`, {
+          method: "DELETE",
+        });
+      }
+
+      for (let i = 0; i < areaList.length; i += 1) {
+        const area = areaList[i];
+        const payload = {
+          name: area.name.trim(),
+          order_index: parseOrderIndex(area.order_index, i + 1),
+          photo_guidance: area.photo_guidance.trim() || null,
+        };
+
+        if (area.id != null) {
+          await apiFetch(`/templates/${editingTemplate.id}/areas/${area.id}`, {
+            method: "PATCH",
+            body: JSON.stringify(payload),
+          });
+        } else {
+          await apiFetch(`/templates/${editingTemplate.id}/areas`, {
+            method: "POST",
+            body: JSON.stringify(payload),
+          });
+        }
+      }
+
       const res = await apiFetch<TemplatesResponse>("/templates");
       setTemplates(res.templates);
       const t = toast({ title: "Template updated successfully." });
       setTimeout(() => t.dismiss(), 4000);
       setEditingTemplate(null);
+      setOriginalEditAreaIds([]);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to update template");
     } finally {
@@ -248,7 +302,7 @@ export default function TemplatesPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Templates</h1>
+        <h1 className="text-2xl font-semibold text-dark-primary">Templates</h1>
         {canManageTemplates && (
           <Button variant={showForm ? "outline" : "primary"} onClick={() => setShowForm((v) => !v)}>
             {showForm ? "Cancel" : (<><Plus className="h-4 w-4" />Create template</>)}
@@ -290,7 +344,7 @@ export default function TemplatesPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>Areas</Label>
-                  <Button type="button" variant="transparent" size="sm" className="h-auto p-0" onClick={addArea}>
+                  <Button type="button" variant="link" size="sm" className="h-auto p-0" onClick={addArea}>
                     + Add area
                   </Button>
                 </div>
@@ -339,7 +393,7 @@ export default function TemplatesPage() {
                         />
                       </div>
                       <div className="flex justify-end">
-                        <Button type="button" variant="outline" size="sm" onClick={() => removeArea(i)}>
+                        <Button type="button" variant="destructive" size="sm" onClick={() => removeArea(i)}>
                           Remove
                         </Button>
                       </div>
@@ -363,6 +417,7 @@ export default function TemplatesPage() {
               <TableHead>Description</TableHead>
               <TableHead>Areas</TableHead>
               <TableHead>Active</TableHead>
+              <TableHead>Last Edited</TableHead>
               <TableHead className="w-[220px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -373,12 +428,13 @@ export default function TemplatesPage() {
                 <TableCell className="max-w-xs truncate text-muted-foreground">{t.description ?? "—"}</TableCell>
                 <TableCell>{t.area_count}</TableCell>
                 <TableCell>{t.is_active ? "Yes" : "No"}</TableCell>
+                <TableCell>{formatLastEdited(t.updated_at, t.created_at)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button
                       variant="transparent"
                       size="sm"
-                      className="bg-accent text-accent-foreground hover:bg-accent/90"
+                      className="bg-accent text-accent-foreground hover:opacity-75"
                       disabled={loadingDetail}
                       onClick={() => openTemplateDetail(t.id)}
                     >
@@ -389,13 +445,13 @@ export default function TemplatesPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="hover:bg-transparent hover:text-foreground"
+                          className="hover:bg-transparent hover:text-foreground hover:opacity-75"
                           onClick={() => startEditTemplate(t)}
                         >
                           Edit
                         </Button>
                         <Button
-                          variant="outline"
+                          variant="destructive"
                           size="sm"
                           onClick={() => setDeletingTemplate(t)}
                         >
@@ -409,7 +465,7 @@ export default function TemplatesPage() {
             ))}
             {templates.length === 0 && !error && (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                   {canManageTemplates ? "No templates yet. Create one above." : "No templates yet."}
                 </TableCell>
               </TableRow>
@@ -457,12 +513,23 @@ export default function TemplatesPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!editingTemplate} onOpenChange={(open) => !open && setEditingTemplate(null)}>
+      <Dialog
+        open={!!editingTemplate}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingTemplate(null);
+            setOriginalEditAreaIds([]);
+          }
+        }}
+      >
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto rounded-[12px]">
           <DialogHeader>
             <DialogTitle>Edit template</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleUpdateTemplate} className="space-y-4">
+            {editTemplateValidationError && (
+              <p className="text-sm text-destructive" role="alert">{editTemplateValidationError}</p>
+            )}
             <div className="space-y-2">
               <Label htmlFor="edit-template-name">Name</Label>
               <Input
@@ -498,7 +565,7 @@ export default function TemplatesPage() {
                 <Label>Areas</Label>
                 <Button
                   type="button"
-                  variant="transparent"
+                  variant="link"
                   size="sm"
                   className="h-auto p-0"
                   onClick={() => setEditAreas((prev) => [...prev, { name: "", order_index: String(prev.length + 1), photo_guidance: "" }])}
@@ -553,7 +620,7 @@ export default function TemplatesPage() {
                     <div className="flex justify-end">
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="destructive"
                         size="sm"
                         onClick={() => removeEditArea(i)}
                       >
@@ -565,10 +632,18 @@ export default function TemplatesPage() {
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setEditingTemplate(null)} disabled={savingEdit}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setEditingTemplate(null);
+                  setOriginalEditAreaIds([]);
+                }}
+                disabled={savingEdit}
+              >
                 Cancel
               </Button>
-              <Button type="submit" disabled={savingEdit}>
+              <Button type="submit" disabled={savingEdit || !!editTemplateValidationError}>
                 {savingEdit ? "Saving..." : "Save changes"}
               </Button>
             </div>
@@ -588,7 +663,7 @@ export default function TemplatesPage() {
             <Button type="button" variant="outline" onClick={() => setDeletingTemplate(null)} disabled={deleting}>
               Cancel
             </Button>
-            <Button type="button" variant="outline" onClick={handleDeleteTemplate} disabled={deleting}>
+            <Button type="button" variant="destructive" onClick={handleDeleteTemplate} disabled={deleting}>
               {deleting ? "Deleting..." : "Delete"}
             </Button>
           </div>

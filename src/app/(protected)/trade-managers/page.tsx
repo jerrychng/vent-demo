@@ -236,7 +236,7 @@ export default function TradeManagersPage() {
                     <Button
                       variant="transparent"
                       size="sm"
-                      className="bg-accent text-accent-foreground hover:bg-accent/90"
+                      className="bg-accent text-accent-foreground hover:opacity-75"
                       disabled={loadingDetail}
                       onClick={() => openUserDetail(u.id)}
                     >

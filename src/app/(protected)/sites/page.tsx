@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { getPhoneValidationError } from "@/lib/phoneValidation";
 import { toast } from "@/hooks/use-toast";
 import type { Site, SiteListItem, SitesResponse } from "@/types/models";
 import { type FormEvent, useEffect, useState } from "react";
@@ -25,6 +26,47 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus } from "lucide-react";
+
+type SiteFormState = {
+  client_name: string;
+  site_name: string;
+  address_line_1: string;
+  address_line_2: string;
+  city: string;
+  postcode: string;
+  contact_name: string;
+  contact_phone: string;
+  contact_email: string;
+  notes: string;
+};
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function getSiteValidationError(form: SiteFormState): string | null {
+  if (!form.client_name.trim()) return "Client name is required.";
+  if (!form.address_line_1.trim()) return "Address line 1 is required.";
+  if (!form.city.trim()) return "City is required.";
+  if (!form.postcode.trim()) return "Postcode is required.";
+  if (!form.contact_phone.trim()) return "Contact phone is required.";
+
+  const phoneError = getPhoneValidationError(form.contact_phone);
+  if (phoneError) return phoneError;
+
+  const email = form.contact_email.trim();
+  if (email && !emailPattern.test(email)) {
+    return "Contact email is invalid.";
+  }
+
+  return null;
+}
+
+function formatLastEdited(updatedAt?: string, createdAt?: string): string {
+  const value = updatedAt || createdAt;
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleString();
+}
 
 export default function SitesPage() {
   const { user, loading } = useAuth();
@@ -65,6 +107,8 @@ export default function SitesPage() {
     contact_email: "",
     notes: ""
   });
+  const createSiteValidationError = getSiteValidationError(form);
+  const editSiteValidationError = getSiteValidationError(editForm);
 
   async function loadSites() {
     const res = await apiFetch<SitesResponse>("/sites");
@@ -93,6 +137,10 @@ export default function SitesPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (createSiteValidationError) {
+      setError(createSiteValidationError);
+      return;
+    }
     setError(null);
     setSubmitting(true);
     try {
@@ -148,6 +196,10 @@ export default function SitesPage() {
   async function handleUpdateSite(e: FormEvent) {
     e.preventDefault();
     if (!editingSite) return;
+    if (editSiteValidationError) {
+      setError(editSiteValidationError);
+      return;
+    }
     setError(null);
     setSavingEdit(true);
     try {
@@ -211,7 +263,7 @@ export default function SitesPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Sites</h1>
+        <h1 className="text-2xl font-semibold text-dark-primary">Sites</h1>
         {canManageSites && (
           <Button variant={showForm ? "outline" : "primary"} onClick={() => setShowForm((v) => !v)}>
             {showForm ? (
@@ -265,8 +317,8 @@ export default function SitesPage() {
                   <Input id="contact_name" value={form.contact_name} onChange={(e) => setForm((f) => ({ ...f, contact_name: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="contact_phone">Contact phone</Label>
-                  <Input id="contact_phone" type="tel" value={form.contact_phone} onChange={(e) => setForm((f) => ({ ...f, contact_phone: e.target.value }))} />
+                  <Label htmlFor="contact_phone">Contact phone <span className="text-destructive">*</span></Label>
+                  <Input id="contact_phone" type="tel" required value={form.contact_phone} onChange={(e) => setForm((f) => ({ ...f, contact_phone: e.target.value }))} />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
                   <Label htmlFor="contact_email">Contact email</Label>
@@ -277,7 +329,7 @@ export default function SitesPage() {
                   <Textarea id="notes" rows={3} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
                 </div>
               </div>
-              <Button type="submit" disabled={submitting}>
+              <Button type="submit" disabled={submitting || !!createSiteValidationError}>
                 {submitting ? (
                   "Creating..."
                 ) : (
@@ -304,6 +356,7 @@ export default function SitesPage() {
               <TableHead className="w-[200px]">Contact Email</TableHead>
               <TableHead className="w-[260px]">Notes</TableHead>
               <TableHead className="w-[70px]">Jobs</TableHead>
+              <TableHead className="w-[180px]">Last Edited</TableHead>
               <TableHead className="w-[220px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -322,12 +375,13 @@ export default function SitesPage() {
                 <TableCell className="align-top whitespace-normal break-words">{site.contact_email ?? "-"}</TableCell>
                 <TableCell className="align-top whitespace-normal break-words">{site.notes ?? "-"}</TableCell>
                 <TableCell className="align-top">{site.job_count ?? 0}</TableCell>
+                <TableCell className="align-top whitespace-normal break-words">{formatLastEdited(site.updated_at, site.created_at)}</TableCell>
                 <TableCell className="text-right align-top">
                   <div className="flex justify-end gap-2">
                     <Button
                       variant="transparent"
                       size="sm"
-                      className="bg-accent text-accent-foreground hover:bg-accent/90"
+                      className="bg-accent text-accent-foreground hover:opacity-75"
                       disabled={loadingDetail}
                       onClick={() => openSiteDetail(site.id)}
                     >
@@ -335,10 +389,10 @@ export default function SitesPage() {
                     </Button>
                     {canManageSites && (
                       <>
-                        <Button variant="outline" size="sm" className="hover:bg-transparent hover:text-foreground" onClick={() => startEditSite(site)}>
+                        <Button variant="outline" size="sm" className="hover:bg-transparent hover:text-foreground hover:opacity-75" onClick={() => startEditSite(site)}>
                           Edit
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => setDeletingSite(site)}>
+                        <Button variant="destructive" size="sm" onClick={() => setDeletingSite(site)}>
                           Delete
                         </Button>
                       </>
@@ -349,7 +403,7 @@ export default function SitesPage() {
             ))}
             {sites.length === 0 && !error && (
               <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={10} className="h-24 text-center text-muted-foreground">
                   {canManageSites ? "No sites yet. Create one above." : "No sites yet."}
                 </TableCell>
               </TableRow>
@@ -403,6 +457,9 @@ export default function SitesPage() {
             <DialogTitle>Edit site</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleUpdateSite} className="space-y-4">
+            {editSiteValidationError && (
+              <p className="text-sm text-destructive" role="alert">{editSiteValidationError}</p>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-client_name">Client name <span className="text-destructive">*</span></Label>
@@ -433,8 +490,16 @@ export default function SitesPage() {
                 <Input id="edit-contact_name" value={editForm.contact_name} onChange={(e) => setEditForm((f) => ({ ...f, contact_name: e.target.value }))} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-contact_phone">Contact phone</Label>
-                <Input id="edit-contact_phone" type="tel" value={editForm.contact_phone} onChange={(e) => setEditForm((f) => ({ ...f, contact_phone: e.target.value }))} />
+                <Label htmlFor="edit-contact_phone">Contact phone <span className="text-destructive">*</span></Label>
+                <Input
+                  id="edit-contact_phone"
+                  type="tel"
+                  inputMode="tel"
+                  maxLength={25}
+                  required
+                  value={editForm.contact_phone}
+                  onChange={(e) => setEditForm((f) => ({ ...f, contact_phone: e.target.value }))}
+                />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="edit-contact_email">Contact email</Label>
@@ -449,7 +514,7 @@ export default function SitesPage() {
               <Button type="button" variant="outline" onClick={() => setEditingSite(null)} disabled={savingEdit}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={savingEdit}>
+              <Button type="submit" disabled={savingEdit || !!editSiteValidationError}>
                 {savingEdit ? "Saving..." : "Save changes"}
               </Button>
             </div>
@@ -469,7 +534,7 @@ export default function SitesPage() {
             <Button type="button" variant="outline" onClick={() => setDeletingSite(null)} disabled={deleting}>
               Cancel
             </Button>
-            <Button type="button" variant="outline" onClick={handleDeleteSite} disabled={deleting}>
+            <Button type="button" variant="destructive" onClick={handleDeleteSite} disabled={deleting}>
               {deleting ? "Deleting..." : "Delete"}
             </Button>
           </div>

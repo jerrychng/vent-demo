@@ -117,7 +117,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
           aria-hidden
         />
         <div
-          className={`fixed z-50 bg-white rounded-md shadow-lg border border-gray-200 p-4 overflow-visible ${
+          className={`fixed z-50 bg-white rounded-md shadow-lg border border-subtle p-4 overflow-visible ${
             isSmallScreen ? "w-[90vw] max-w-sm -translate-x-1/2" : "w-80"
           } ${hasSelectedFilters ? "max-h-[600px]" : "max-h-96"}`}
           style={{
@@ -142,7 +142,7 @@ const FilterModal: React.FC<FilterModalProps> = ({
             ))}
           </div>
           <div
-            className={`flex justify-center items-center p-4 border-t border-gray-200`}
+            className={`flex justify-center items-center p-4 border-t border-subtle`}
           >
             <button
               onClick={handleClearFilters}

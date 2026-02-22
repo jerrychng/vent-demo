@@ -77,7 +77,7 @@ const Select: React.FC<SelectProps> = ({
       button: `border ${
         error
           ? "border-red-300 focus:ring-red-500"
-          : "border-gray-300 focus:ring-blue-500"
+          : "border-subtle focus:ring-blue-500"
       } ${
         disabled
           ? "bg-gray-100 cursor-not-allowed opacity-60"
@@ -89,7 +89,7 @@ const Select: React.FC<SelectProps> = ({
           ? "text-dark-primary"
           : "text-gray-500",
       icon: disabled ? "text-gray-400" : "text-gray-600",
-      dropdown: "bg-white border-x border-b border-gray-300",
+      dropdown: "bg-white border-x border-b border-subtle",
       option: "hover:bg-background text-text-dark-gray hover:text-dark-primary",
       selectedOption: "text-dark-primary bg-background font-bold",
     },

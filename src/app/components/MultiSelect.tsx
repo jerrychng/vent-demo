@@ -74,11 +74,11 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
       button: `border ${
         error
           ? "border-red-300 focus:ring-red-500"
-          : "border-gray-300 focus:ring-blue-500"
+          : "border-subtle focus:ring-blue-500"
       } ${disabled ? "bg-gray-100 cursor-not-allowed" : "hover:bg-background"}`,
       text: value.length > 0 ? "text-gray-900" : "text-gray-500",
       icon: "text-gray-600",
-      dropdown: "bg-white border-x border-b border-gray-300",
+      dropdown: "bg-white border-x border-b border-subtle",
       optionRow: "hover:bg-background",
       optionText: "text-gray-900",
       checkbox: "text-blue-600",

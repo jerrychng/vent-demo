@@ -28,6 +28,14 @@ import {
 } from "@/components/ui/table";
 import { Plus } from "lucide-react";
 
+function formatLastEdited(updatedAt?: string, createdAt?: string): string {
+  const value = updatedAt || createdAt;
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleString();
+}
+
 export default function EngineerPage() {
   const { user, loading } = useAuth();
   const canManageEngineers =
@@ -182,7 +190,7 @@ export default function EngineerPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Engineers</h1>
+        <h1 className="text-2xl font-semibold text-dark-primary">Engineers</h1>
         <Button variant={showForm ? "outline" : "primary"} onClick={() => setShowForm((v) => !v)}>
           {showForm ? (
             "Cancel"
@@ -296,6 +304,7 @@ export default function EngineerPage() {
               <TableHead className="w-[130px]">Phone</TableHead>
               <TableHead className="w-[200px]">Address</TableHead>
               <TableHead className="w-[70px]">Active</TableHead>
+              <TableHead className="w-[180px]">Last Edited</TableHead>
               <TableHead className="w-[220px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -307,18 +316,19 @@ export default function EngineerPage() {
                 <TableCell className="align-top whitespace-normal break-words">{u.phone_number ?? "-"}</TableCell>
                 <TableCell className="align-top whitespace-normal break-words">{u.address ?? "-"}</TableCell>
                 <TableCell className="align-top">{u.is_active ? "Yes" : "No"}</TableCell>
+                <TableCell className="align-top whitespace-normal break-words">{formatLastEdited(u.updated_at, u.created_at)}</TableCell>
                 <TableCell className="text-right align-top">
                   <div className="flex justify-end gap-2">
                     <Button
                       variant="transparent"
                       size="sm"
-                      className="bg-accent text-accent-foreground hover:bg-accent/90"
+                      className="bg-accent text-accent-foreground hover:opacity-75"
                       disabled={loadingDetail}
                       onClick={() => openUserDetail(u.id)}
                     >
                       View
                     </Button>
-                    <Button variant="outline" size="sm" className="hover:bg-transparent hover:text-foreground" onClick={() => startEditUser(u)}>
+                    <Button variant="outline" size="sm" className="hover:bg-transparent hover:text-foreground hover:opacity-75" onClick={() => startEditUser(u)}>
                       Edit
                     </Button>
                   </div>
@@ -327,7 +337,7 @@ export default function EngineerPage() {
             ))}
             {users.length === 0 && !error && (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                   No engineers in this list.
                 </TableCell>
               </TableRow>

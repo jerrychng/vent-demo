@@ -53,8 +53,8 @@
   --accent-foreground: var(--color-dark-primary);
   --destructive: var(--color-highlight-red);
   --destructive-foreground: #ffffff;
-  --border: var(--color-gray);
-  --input: var(--color-gray);
+  --border: var(--color-subtle);
+  --input: var(--color-subtle);
   --ring: var(--color-primary);
   --sidebar: var(--color-dark-primary);
   --sidebar-foreground: #ffffff;

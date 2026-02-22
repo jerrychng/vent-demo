@@ -66,12 +66,12 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Dashboard</h1>
+      <h1 className="text-2xl font-semibold text-dark-primary">Dashboard</h1>
 
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground uppercase">
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase  text-primary">
               Active Jobs
             </CardTitle>
           </CardHeader>
@@ -81,7 +81,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground uppercase">
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase text-primary">
               Pending Review
             </CardTitle>
           </CardHeader>
@@ -91,7 +91,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground uppercase">
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase  text-primary">
               Approved
             </CardTitle>
           </CardHeader>
@@ -105,7 +105,7 @@ export default function DashboardPage() {
 
       <section>
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-medium">Pending Review</h2>
+          <h2 className="text-lg font-medium text-dark-primary">Pending Review</h2>
         </div>
         {error && (
           <p className="text-sm text-destructive mb-2" role="alert">
@@ -161,7 +161,7 @@ export default function DashboardPage() {
                     <Button
                       size="sm"
                       variant="transparent"
-                      className="bg-accent text-accent-foreground hover:bg-accent/90"
+                      className="bg-accent text-accent-foreground hover:opacity-75"
                       onClick={(event) => {
                         event.stopPropagation();
                         router.push(`/jobs/${job.id}`);

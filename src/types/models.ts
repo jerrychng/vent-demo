@@ -116,7 +116,7 @@ export type SiteSummary = Pick<Site, "client_name" | "site_name" | "postcode"> &
 export type EngineerSummary = Pick<User, "full_name"> & { id?: number };
 
 /** Job list item: job fields plus nested site and engineer summaries. */
-export type JobRow = Pick<Job, "id" | "reference" | "title" | "status" | "scheduled_date" | "scheduled_start_time" | "scheduled_end_time" | "created_at"> & {
+export type JobRow = Pick<Job, "id" | "reference" | "title" | "status" | "scheduled_date" | "scheduled_start_time" | "scheduled_end_time" | "created_at" | "updated_at"> & {
   site: SiteSummary;
   engineer: EngineerSummary | null;
   submitted_at?: string | null;
@@ -156,6 +156,8 @@ export type SiteListItem = {
   contact_email?: string | null;
   notes?: string | null;
   job_count?: number;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type SitesResponse = {
@@ -171,6 +173,7 @@ export type TemplateListItem = {
   area_count: number;
   is_active: boolean;
   created_at: string;
+  updated_at?: string;
 };
 
 export type TemplatesResponse = {
@@ -187,6 +190,7 @@ export type UserListItem = Pick<User, "id" | "email" | "full_name" | "role" | "i
   phone_number?: string | null;
   address?: string | null;
   created_at?: string;
+  updated_at?: string;
 };
 
 export type UsersResponse = {

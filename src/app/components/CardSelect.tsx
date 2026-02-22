@@ -114,7 +114,7 @@ const CardSelect: React.FC<CardSelectProps> = ({
         {/* Trigger Button */}
         <div
           onClick={toggleDropdown}
-          className={`border-gray-300 hover:border-gray-400 w-full px-4 py-3 border rounded-lg cursor-pointer flex items-center justify-between ${
+          className={`border-subtle hover:border-secondary w-full px-4 py-3 border rounded-lg cursor-pointer flex items-center justify-between ${
             error
               ? "border-red-300 focus:ring-dark-red"
               : "border-dark-primary focus:ring-blue-500"
@@ -153,7 +153,7 @@ const CardSelect: React.FC<CardSelectProps> = ({
 
         {/* Dropdown Options */}
         {isOpen && (
-          <div className="absolute z-10 w-full mt-0 bg-white border-x border-b border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-10 w-full mt-0 bg-white border-x border-b border-subtle rounded-md shadow-lg max-h-60 overflow-auto">
             {cards.length === 0 ? (
               <div className="px-4 py-3 text-gray-500 text-center">
                 No cards available

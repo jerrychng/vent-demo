@@ -45,7 +45,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   const variantStyles = {
     default: {
       labelColor: "",
-      borderColor: "border-gray-300",
+      borderColor: "border-subtle",
       backgroundColor: "bg-white",
       textColor: "text-dark-primary",
       focusRing: "focus:ring-blue-500",

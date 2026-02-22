@@ -57,7 +57,7 @@ const TextArea: React.FC<TextAreaProps> = ({
   // Define variant styles
   const variantStyles = {
     default: {
-      borderColor: "border-gray-300",
+      borderColor: "border-subtle",
       backgroundColor: "bg-white",
       textColor: "text-dark-primary",
       focusRing: "focus:ring-primary",

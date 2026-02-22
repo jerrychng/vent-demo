@@ -107,7 +107,7 @@ const SortModal: React.FC<SortModalProps> = ({
           aria-hidden
         />
         <div
-          className="fixed z-50 bg-white rounded-md shadow-lg border border-gray-200 p-4 overflow-visible"
+          className="fixed z-50 bg-white rounded-md shadow-lg border border-subtle p-4 overflow-visible"
           style={positionStyles}
         >
           <div className="space-y-3">

@@ -128,6 +128,7 @@ const mockTemplates: Array<TemplateListItem & { areas?: TemplateArea[] }> = [
     area_count: 1,
     is_active: true,
     created_at: "2026-01-10T09:00:00Z",
+    updated_at: now(),
     areas: [
       {
         id: 1,
@@ -375,6 +376,7 @@ function getJobList(status?: string, engineerId?: number): JobRow[] {
     submitted_at: j.submitted_at,
     review_notes: j.review_notes,
     created_at: j.created_at,
+    updated_at: j.updated_at,
   }));
   return list.filter((j) => {
     if (status && j.status !== status) return false;
@@ -764,7 +766,9 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       contact_phone: s.contact_phone,
       contact_email: s.contact_email,
       notes: s.notes,
-      job_count: Object.values(mockJobDetails).filter((j) => j.site.id === s.id).length
+      job_count: Object.values(mockJobDetails).filter((j) => j.site.id === s.id).length,
+      created_at: s.created_at,
+      updated_at: s.updated_at,
     }));
     if (search) {
       list = list.filter(
@@ -808,9 +812,11 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
     if (city !== undefined && String(city).trim()) site.city = String(city).trim();
     if (postcode !== undefined && String(postcode).trim()) site.postcode = String(postcode).trim();
     if (contact_name !== undefined) site.contact_name = contact_name ? String(contact_name) : null;
-    if (contact_phone !== undefined) site.contact_phone = contact_phone ? String(contact_phone) : null;
+    if (contact_phone !== undefined) site.contact_phone = contact_phone ? String(contact_phone).trim() : null;
     if (contact_email !== undefined) site.contact_email = contact_email ? String(contact_email) : null;
     if (notes !== undefined) site.notes = notes ? String(notes) : null;
+    const sitePhoneError = getPhoneValidationError(String(site.contact_phone ?? ""));
+    if (sitePhoneError) throw new Error(sitePhoneError);
     site.updated_at = now();
     return site;
   }
@@ -830,7 +836,11 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
   // POST /sites
   if (pathname === "/sites" && method === "POST") {
     const { client_name, site_name, address_line_1, address_line_2, city, postcode, contact_name, contact_phone, contact_email, notes } = body;
-    if (!client_name || !address_line_1 || !city || !postcode) throw new Error("client_name, address_line_1, city, postcode required");
+    if (!client_name || !address_line_1 || !city || !postcode || !contact_phone) {
+      throw new Error("client_name, address_line_1, city, postcode, contact_phone required");
+    }
+    const sitePhoneError = getPhoneValidationError(String(contact_phone));
+    if (sitePhoneError) throw new Error(sitePhoneError);
     const ts = now();
     const site: Site = {
       id: nextSiteId++,
@@ -860,7 +870,8 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       description: t.description,
       area_count: t.area_count,
       is_active: t.is_active,
-      created_at: t.created_at
+      created_at: t.created_at,
+      updated_at: t.updated_at ?? t.created_at
     }));
     if (isActive !== null && isActive !== undefined && isActive !== "") {
       const active = isActive === "true";
@@ -883,13 +894,15 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       area_count: t.area_count,
       is_active: t.is_active,
       created_at: t.created_at,
+      updated_at: t.updated_at ?? t.created_at,
       areas
     };
   }
-  if (templateIdMatch && method === "PUT") {
+  if (templateIdMatch && (method === "PUT" || method === "PATCH")) {
     const id = parseInt(templateIdMatch[1], 10);
     const t = mockTemplates.find((x) => x.id === id);
     if (!t) throw new Error("Template not found");
+    const ts = now();
 
     const { name, description, is_active, areas } = body as {
       name?: string;
@@ -926,15 +939,107 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       t.areas = areaList;
       t.area_count = areaList.length;
     }
+    t.updated_at = ts;
     return {
       id: t.id,
       name: t.name,
       description: t.description,
       area_count: t.area_count,
       is_active: t.is_active,
-      created_at: t.created_at
+      created_at: t.created_at,
+      updated_at: t.updated_at
     };
   }
+
+  const templateAreaCollectionMatch = pathname.match(/^\/templates\/(\d+)\/areas$/);
+  if (templateAreaCollectionMatch && method === "POST") {
+    const templateId = parseInt(templateAreaCollectionMatch[1], 10);
+    const t = mockTemplates.find((x) => x.id === templateId);
+    if (!t) throw new Error("Template not found");
+
+    const { name, order_index, photo_guidance } = body as {
+      name?: string;
+      order_index?: number;
+      photo_guidance?: string | null;
+    };
+    if (!name || !String(name).trim()) throw new Error("name is required");
+
+    const ts = now();
+    const existingAreas = t.areas ?? mockTemplateAreas.filter((a) => a.template_id === templateId);
+    const area: TemplateArea = {
+      id: nextAreaId++,
+      template_id: templateId,
+      name: String(name).trim(),
+      description: null,
+      order_index:
+        typeof order_index === "number" && Number.isFinite(order_index) && order_index > 0
+          ? Math.floor(order_index)
+          : existingAreas.length + 1,
+      photo_guidance: photo_guidance != null ? String(photo_guidance).trim() || null : null,
+      created_at: ts,
+    };
+    mockTemplateAreas.push(area);
+    t.areas = [...existingAreas, area];
+    t.area_count = t.areas.length;
+    t.updated_at = ts;
+    return area;
+  }
+
+  const templateAreaMatch = pathname.match(/^\/templates\/(\d+)\/areas\/(\d+)$/);
+  if (templateAreaMatch && (method === "PATCH" || method === "DELETE")) {
+    const templateId = parseInt(templateAreaMatch[1], 10);
+    const areaId = parseInt(templateAreaMatch[2], 10);
+    const t = mockTemplates.find((x) => x.id === templateId);
+    if (!t) throw new Error("Template not found");
+
+    const existingAreas = t.areas ?? mockTemplateAreas.filter((a) => a.template_id === templateId);
+    const areaIndex = existingAreas.findIndex((a) => a.id === areaId);
+    if (areaIndex < 0) throw new Error("Template area not found");
+
+    if (method === "DELETE") {
+      const ts = now();
+      const updatedAreas = existingAreas.filter((a) => a.id !== areaId);
+      t.areas = updatedAreas;
+      t.area_count = updatedAreas.length;
+      t.updated_at = ts;
+
+      for (let i = mockTemplateAreas.length - 1; i >= 0; i -= 1) {
+        if (mockTemplateAreas[i].id === areaId) {
+          mockTemplateAreas.splice(i, 1);
+        }
+      }
+      return {};
+    }
+
+    const { name, order_index, photo_guidance } = body as {
+      name?: string;
+      order_index?: number;
+      photo_guidance?: string | null;
+    };
+    const area = existingAreas[areaIndex];
+    if (name !== undefined && String(name).trim()) area.name = String(name).trim();
+    if (order_index !== undefined && Number.isFinite(order_index) && Number(order_index) > 0) {
+      area.order_index = Math.floor(Number(order_index));
+    }
+    if (photo_guidance !== undefined) {
+      area.photo_guidance = photo_guidance != null ? String(photo_guidance).trim() || null : null;
+    }
+
+    const ts = now();
+    t.areas = existingAreas;
+    t.area_count = existingAreas.length;
+    t.updated_at = ts;
+
+    const sharedArea = mockTemplateAreas.find((a) => a.id === areaId);
+    if (sharedArea) {
+      sharedArea.name = area.name;
+      sharedArea.order_index = area.order_index;
+      sharedArea.photo_guidance = area.photo_guidance;
+    }
+
+    return area;
+  }
+
   if (templateIdMatch && method === "DELETE") {
     const id = parseInt(templateIdMatch[1], 10);
     const idx = mockTemplates.findIndex((x) => x.id === id);
@@ -975,6 +1080,7 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       area_count: areaList.length,
       is_active: true,
       created_at: ts,
+      updated_at: ts,
       areas: areaList
     };
     mockTemplates.push(template);
@@ -993,7 +1099,8 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       is_active: u.is_active ?? true,
       phone_number: u.phone_number ?? null,
       address: u.address ?? null,
-      created_at: u.created_at
+      created_at: u.created_at,
+      updated_at: u.updated_at
     }));
     if (currentUser.role === "trade_manager") list = list.filter((u) => u.role === "engineer");
     if (roleFilter) list = list.filter((u) => u.role === roleFilter);

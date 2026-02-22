@@ -95,14 +95,16 @@ export default function JobDetailPage() {
     );
   }
 
-  const canReview = job.status === "submitted";
+  const canReview = job.status === "submitted" || job.status === "rejected";
   const statusBadgeClass =
     job.status === "rejected"
-      ? "bg-red-100 text-red-700"
+      ? "bg-light-red text-dark-red"
       : job.status === "approved"
-        ? "bg-green-100 text-green-700"
+        ? "bg-light-green text-dark-green"
         : job.status === "in_progress"
-          ? "bg-yellow-100 text-yellow-700"
+          ? "bg-light-orange text-orange"
+          : job.status === "assigned"
+            ? "bg-subtle text-dark-primary"
           : "bg-muted text-muted-foreground";
 
   return (
@@ -223,15 +225,16 @@ export default function JobDetailPage() {
 
       <section className="flex gap-3">
         <Button
-          variant="outline"
+          variant="destructive"
           onClick={() => setRejectOpen(true)}
           disabled={reviewing || !canReview}
         >
           Reject
         </Button>
         <Button
+          variant="green"
           onClick={() => setApproveOpen(true)}
-          className="bg-highlight-green hover:bg-highlight-green/90"
+          className="bg-highlight-green text-white border-highlight-green hover:opacity-90"
           disabled={reviewing || !canReview}
         >
           Approve
@@ -288,7 +291,7 @@ export default function JobDetailPage() {
             >
               Cancel
             </Button>
-            <Button variant="outline" onClick={() => submitReview("reject")} disabled={reviewing}>
+            <Button variant="destructive" onClick={() => submitReview("reject")} disabled={reviewing}>
               {reviewing ? "Rejecting..." : "Confirm Reject"}
             </Button>
           </DialogFooter>

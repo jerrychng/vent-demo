@@ -5,19 +5,19 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "rounded-lg hover:cursor-pointer inline-flex flex-nowrap flex-row justify-center items-center min-w-fit gap-2 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 disabled:bg-background disabled:text-text-dark-gray disabled:opacity-70 disabled:cursor-not-allowed disabled:border-gray",
+  "rounded-lg hover:cursor-pointer inline-flex flex-nowrap flex-row justify-center items-center min-w-fit gap-2 transition-colors [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 disabled:bg-background disabled:text-text-dark-gray disabled:opacity-70 disabled:cursor-not-allowed disabled:border-gray",
   {
     variants: {
       variant: {
-        default: "border border-primary bg-primary text-accent",
-        primary: "border border-primary bg-primary text-accent",
+        default: "border border-primary bg-primary text-accent hover:bg-dark-primary",
+        primary: "border border-primary bg-primary text-accent hover:bg-dark-primary",
         primaryOutline:
           "border border-primary text-dark-primary hover:bg-primary hover:text-accent",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-gray-300 text-gray-700",
-        secondary: "bg-gray-600 text-white",
+        destructive: "bg-destructive text-destructive-foreground hover:opacity-90",
+        outline: "border border-subtle text-gray-700 hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-gray-600 text-white hover:bg-gray-700",
         green: "border border-highlight-green bg-light-green text-dark-green",
-        transparent: "bg-transparent text-dark-primary",
+        transparent: "bg-transparent text-dark-primary hover:bg-accent",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },

@@ -82,10 +82,10 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   const variantStyles = {
     default: {
       labelColor: "",
-      containerBorderColor: "border-gray-300",
+      containerBorderColor: "border-subtle",
       containerBackgroundColor: "bg-white",
       buttonTextColor: "text-gray-600",
-      buttonBorderColor: "border-gray-300",
+      buttonBorderColor: "border-subtle",
       inputBorderColor: "border-none",
       inputBackgroundColor: "bg-white",
       inputTextColor: "text-dark-primary",
@@ -257,15 +257,15 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
 
         {/* Country Dropdown */}
         {isOpen && (
-          <div className="absolute z-10 left-0 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+          <div className="absolute z-10 left-0 w-full mt-1 bg-white border border-subtle rounded-md shadow-lg">
             {/* Search input */}
-            <div className="p-2 border-b border-gray-200">
+            <div className="p-2 border-b border-subtle">
               <input
                 type="text"
                 placeholder="Search your country"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full px-3 py-2 border border-subtle rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
 
