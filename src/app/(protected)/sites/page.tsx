@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
+import Image from "next/image";
 import { getPhoneValidationError } from "@/lib/phoneValidation";
 import { toast } from "@/hooks/use-toast";
 import type { Site, SiteListItem, SitesResponse } from "@/types/models";
@@ -11,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MobileExpandableList } from "@/components/ui/mobile-expandable-list";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +27,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus } from "lucide-react";
 
 type SiteFormState = {
   client_name: string;
@@ -270,7 +271,7 @@ export default function SitesPage() {
               "Cancel"
             ) : (
               <>
-                <Plus className="h-4 w-4" />
+                <Image src="/assets/Plus_rectangle.svg" alt="" width={16} height={16} className="h-4 w-4" aria-hidden />
                 Create site
               </>
             )}
@@ -334,7 +335,7 @@ export default function SitesPage() {
                   "Creating..."
                 ) : (
                   <>
-                    <Plus className="h-4 w-4" />
+                    <Image src="/assets/Plus_rectangle.svg" alt="" width={16} height={16} className="h-4 w-4" aria-hidden />
                     Create site
                   </>
                 )}
@@ -344,19 +345,77 @@ export default function SitesPage() {
         </Card>
       )}
 
-      <Card>
+      <Card className="md:hidden p-3">
+        <MobileExpandableList
+          items={sites}
+          getKey={(site) => site.id}
+          emptyMessage={canManageSites ? "No sites yet. Create one above." : "No sites yet."}
+          mobileHeader={(
+            <div className="grid grid-cols-[1fr_auto] items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">
+              <span>Site</span>
+              <span>Jobs</span>
+            </div>
+          )}
+          renderSummary={(site) => (
+            <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+              <p className="min-w-0 truncate text-sm font-semibold text-dark-primary">
+                {site.site_name ?? site.client_name}
+              </p>
+              <span className="justify-self-start text-xs text-text-dark-gray">{site.job_count ?? 0} jobs</span>
+            </div>
+          )}
+          renderDetails={(site) => (
+            <div className="space-y-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Client</p>
+                <p className="text-sm text-dark-primary">{site.client_name}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Address</p>
+                <p className="text-sm text-dark-primary">
+                  {[site.address_line_1, site.address_line_2, site.city, site.postcode].filter(Boolean).join(", ") || "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Contact</p>
+                <p className="text-sm text-dark-primary">
+                  {[site.contact_name, site.contact_phone, site.contact_email].filter(Boolean).join(" | ") || "-"}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="flex-1"
+                  disabled={loadingDetail}
+                  onClick={() => openSiteDetail(site.id)}
+                >
+                  View Detail
+                </Button>
+                {canManageSites && (
+                  <>
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => startEditSite(site)}>
+                      Edit
+                    </Button>
+                    <Button variant="destructive" size="sm" className="flex-1" onClick={() => setDeletingSite(site)}>
+                      Delete
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        />
+      </Card>
+
+      <Card className="hidden md:block">
         <Table className="table-fixed">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[140px]">Client</TableHead>
               <TableHead className="w-[120px]">Site</TableHead>
               <TableHead className="w-[220px]">Address</TableHead>
-              <TableHead className="w-[140px]">Contact Name</TableHead>
-              <TableHead className="w-[130px]">Contact Phone</TableHead>
-              <TableHead className="w-[200px]">Contact Email</TableHead>
-              <TableHead className="w-[260px]">Notes</TableHead>
               <TableHead className="w-[70px]">Jobs</TableHead>
-              <TableHead className="w-[180px]">Last Edited</TableHead>
               <TableHead className="w-[220px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -370,12 +429,7 @@ export default function SitesPage() {
                     .filter((part) => !!part)
                     .join(", ")}
                 </TableCell>
-                <TableCell className="align-top whitespace-normal break-words">{site.contact_name ?? "-"}</TableCell>
-                <TableCell className="align-top whitespace-normal break-words">{site.contact_phone ?? "-"}</TableCell>
-                <TableCell className="align-top whitespace-normal break-words">{site.contact_email ?? "-"}</TableCell>
-                <TableCell className="align-top whitespace-normal break-words">{site.notes ?? "-"}</TableCell>
                 <TableCell className="align-top">{site.job_count ?? 0}</TableCell>
-                <TableCell className="align-top whitespace-normal break-words">{formatLastEdited(site.updated_at, site.created_at)}</TableCell>
                 <TableCell className="text-right align-top">
                   <div className="flex justify-end gap-2">
                     <Button
@@ -403,7 +457,7 @@ export default function SitesPage() {
             ))}
             {sites.length === 0 && !error && (
               <TableRow>
-                <TableCell colSpan={10} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                   {canManageSites ? "No sites yet. Create one above." : "No sites yet."}
                 </TableCell>
               </TableRow>
@@ -446,6 +500,7 @@ export default function SitesPage() {
               {viewDetail.notes && (
                 <p><span className="font-medium text-muted-foreground">Notes:</span> {viewDetail.notes}</p>
               )}
+              <p><span className="font-medium text-muted-foreground">Last Edited:</span> {formatLastEdited(viewDetail.updated_at, viewDetail.created_at)}</p>
             </div>
           )}
         </DialogContent>

@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
+import Image from "next/image";
 import { getPasswordValidationError, PASSWORD_POLICY } from "@/lib/passwordValidation";
 import { getPhoneValidationError, PHONE_POLICY } from "@/lib/phoneValidation";
 import { toast } from "@/hooks/use-toast";
@@ -12,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordField } from "@/components/ui/password-field";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { MobileExpandableList } from "@/components/ui/mobile-expandable-list";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +28,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus } from "lucide-react";
 
 function formatLastEdited(updatedAt?: string, createdAt?: string): string {
   const value = updatedAt || createdAt;
@@ -196,7 +197,7 @@ export default function EngineerPage() {
             "Cancel"
           ) : (
             <>
-              <Plus className="h-4 w-4" />
+             
               Create engineer
             </>
           )}
@@ -285,7 +286,7 @@ export default function EngineerPage() {
                   "Creating..."
                 ) : (
                   <>
-                    <Plus className="h-4 w-4" />
+                    
                     Create engineer
                   </>
                 )}
@@ -295,7 +296,59 @@ export default function EngineerPage() {
         </Card>
       )}
 
-      <Card>
+      <Card className="md:hidden p-3">
+        <MobileExpandableList
+          items={users}
+          getKey={(u) => u.id}
+          emptyMessage="No engineers in this list."
+          mobileHeader={(
+            <div className="grid grid-cols-[1fr_auto] items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">
+              <span>Name</span>
+              <span>Status</span>
+            </div>
+          )}
+          renderSummary={(u) => (
+            <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+              <p className="min-w-0 truncate text-sm font-semibold text-dark-primary">{u.full_name}</p>
+              <span className={`justify-self-start rounded-full border px-2 py-0.5 text-[10px] ${u.is_active ? "border-highlight-green bg-light-green text-dark-green" : "border-subtle bg-white text-text-dark-gray"}`}>
+                {u.is_active ? "Active" : "Inactive"}
+              </span>
+            </div>
+          )}
+          renderDetails={(u) => (
+            <div className="space-y-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Email</p>
+                <p className="text-sm text-dark-primary break-all">{u.email}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Phone</p>
+                <p className="text-sm text-dark-primary">{u.phone_number ?? "-"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Address</p>
+                <p className="text-sm text-dark-primary">{u.address ?? "-"}</p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="flex-1"
+                  disabled={loadingDetail}
+                  onClick={() => openUserDetail(u.id)}
+                >
+                  View Detail
+                </Button>
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => startEditUser(u)}>
+                  Edit
+                </Button>
+              </div>
+            </div>
+          )}
+        />
+      </Card>
+
+      <Card className="hidden md:block">
         <Table className="table-fixed">
           <TableHeader>
             <TableRow>
@@ -304,7 +357,6 @@ export default function EngineerPage() {
               <TableHead className="w-[130px]">Phone</TableHead>
               <TableHead className="w-[200px]">Address</TableHead>
               <TableHead className="w-[70px]">Active</TableHead>
-              <TableHead className="w-[180px]">Last Edited</TableHead>
               <TableHead className="w-[220px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -316,7 +368,6 @@ export default function EngineerPage() {
                 <TableCell className="align-top whitespace-normal break-words">{u.phone_number ?? "-"}</TableCell>
                 <TableCell className="align-top whitespace-normal break-words">{u.address ?? "-"}</TableCell>
                 <TableCell className="align-top">{u.is_active ? "Yes" : "No"}</TableCell>
-                <TableCell className="align-top whitespace-normal break-words">{formatLastEdited(u.updated_at, u.created_at)}</TableCell>
                 <TableCell className="text-right align-top">
                   <div className="flex justify-end gap-2">
                     <Button
@@ -337,7 +388,7 @@ export default function EngineerPage() {
             ))}
             {users.length === 0 && !error && (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                   No engineers in this list.
                 </TableCell>
               </TableRow>
@@ -358,6 +409,7 @@ export default function EngineerPage() {
               <p><span className="font-medium text-muted-foreground">Address:</span> {viewDetail.address ?? "-"}</p>
               <p><span className="font-medium text-muted-foreground">Role:</span> <span className="capitalize">{viewDetail.role.replace("_", " ")}</span></p>
               <p><span className="font-medium text-muted-foreground">Active:</span> {viewDetail.is_active ? "Yes" : "No"}</p>
+              <p><span className="font-medium text-muted-foreground">Last Edited:</span> {formatLastEdited(viewDetail.updated_at, viewDetail.created_at)}</p>
               {viewDetail.created_at && (
                 <p className="text-muted-foreground text-xs">
                   Created {new Date(viewDetail.created_at).toLocaleDateString()}

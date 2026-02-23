@@ -142,6 +142,9 @@ export default function JobDetailPage() {
             {" "}
             {job.scheduled_end_time ? new Date(job.scheduled_end_time).toLocaleString() : "-"}
           </p>
+          <p className="text-sm text-muted-foreground">
+            Last Edited: {job.updated_at ? new Date(job.updated_at).toLocaleString() : (job.created_at ? new Date(job.created_at).toLocaleString() : "-")}
+          </p>
         </CardHeader>
       </Card>
 

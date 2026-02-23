@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { JobDetail, JobRow, JobsResponse } from "@/types/models";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { MobileExpandableList } from "@/components/ui/mobile-expandable-list";
 import {
   Table,
   TableBody,
@@ -112,7 +113,58 @@ export default function DashboardPage() {
             {error}
           </p>
         )}
-        <Card>
+        <Card className="md:hidden p-3">
+          <MobileExpandableList
+            items={pending}
+            getKey={(job) => job.id}
+            emptyMessage="No jobs pending review."
+            mobileHeader={(
+              <div className="grid grid-cols-[minmax(0,1fr)_88px_88px] items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">
+                <span>Job</span>
+                <span className="text-center">Status</span>
+                <span className="text-left">Date</span>
+              </div>
+            )}
+            renderSummary={(job) => (
+              <div className="grid grid-cols-[minmax(0,1fr)_88px_88px] items-center gap-2">
+                <p className="min-w-0 truncate text-sm font-semibold text-dark-primary">{job.title}</p>
+                <span className="justify-self-center rounded-full border border-subtle bg-white px-2 py-0.5 text-[10px] text-text-dark-gray capitalize">
+                  {job.status.replace("_", " ")}
+                </span>
+                <span className="justify-self-start w-full truncate text-xs text-dark-primary">{job.scheduled_date ?? "-"}</span>
+              </div>
+            )}
+            renderDetails={(job) => (
+              <div className="space-y-3">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Reference</p>
+                  <p className="text-sm font-semibold text-primary">{job.reference}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Site</p>
+                  <p className="text-sm text-dark-primary">
+                    {[job.site.address_line_1, job.site.address_line_2, job.site.city, job.site.postcode]
+                      .filter(Boolean)
+                      .join(", ") || "No site"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Engineer</p>
+                  <p className="text-sm text-dark-primary">{job.engineer?.full_name ?? "Unassigned"}</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  className="w-full"
+                  onClick={() => router.push(`/jobs/${job.id}`)}
+                >
+                  View Detail
+                </Button>
+              </div>
+            )}
+          />
+        </Card>
+        <Card className="hidden md:block">
           <Table>
             <TableHeader>
               <TableRow>

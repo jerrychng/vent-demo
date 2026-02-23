@@ -2,6 +2,9 @@
 
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { FilterIcon, Sorting05Icon } from "@hugeicons/core-free-icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
@@ -19,6 +22,7 @@ import type {
 } from "@/types/models";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { MobileExpandableList } from "@/components/ui/mobile-expandable-list";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,7 +40,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus } from "lucide-react";
 
 function toLocalDateTimeInputValue(value: string | null): string {
   if (!value) return "";
@@ -63,12 +66,13 @@ function formatScheduledWindow(start: string | null, end: string | null): string
   return `${startText} - ${endText}`;
 }
 
-function formatLastEdited(updatedAt?: string, createdAt?: string): string {
-  const value = updatedAt || createdAt;
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleString();
+function getJobSortTimestamp(job: JobRow): number {
+  const primary = job.scheduled_start_time ?? job.created_at;
+  const parsed = primary ? Date.parse(primary) : Number.NaN;
+  if (!Number.isNaN(parsed)) return parsed;
+
+  const fallback = Date.parse(job.created_at);
+  return Number.isNaN(fallback) ? 0 : fallback;
 }
 
 function getStatusBadgeClass(status: JobStatus): string {
@@ -279,10 +283,8 @@ export default function JobsPage() {
         : jobs.filter((job) => job.status === statusFilter);
 
     return [...filtered].sort((a, b) => {
-      const aTime = Date.parse(a.created_at);
-      const bTime = Date.parse(b.created_at);
-      const safeATime = Number.isNaN(aTime) ? 0 : aTime;
-      const safeBTime = Number.isNaN(bTime) ? 0 : bTime;
+      const safeATime = getJobSortTimestamp(a);
+      const safeBTime = getJobSortTimestamp(b);
       return sortOrder === "recent" ? safeBTime - safeATime : safeATime - safeBTime;
     });
   }, [jobs, statusFilter, sortOrder]);
@@ -305,7 +307,7 @@ export default function JobsPage() {
               "Cancel"
             ) : (
               <>
-                <Plus className="h-4 w-4" />
+                <Image src="/assets/Plus_rectangle.svg" alt="" width={16} height={16} className="h-4 w-4" aria-hidden />
                 Create job
               </>
             )}
@@ -427,7 +429,7 @@ export default function JobsPage() {
                 "Creating..."
               ) : (
                 <>
-                  <Plus className="h-4 w-4" />
+                  <Image src="/assets/Plus_rectangle.svg" alt="" width={16} height={16} className="h-4 w-4" aria-hidden />
                   Create job
                 </>
               )}
@@ -439,7 +441,10 @@ export default function JobsPage() {
       <Card className="p-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="job-status-filter">Filter by status</Label>
+            <Label htmlFor="job-status-filter" className="inline-flex items-center gap-2">
+              <HugeiconsIcon icon={FilterIcon} className="h-4 w-4" />
+              Filter by status
+            </Label>
             <select
               id="job-status-filter"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -457,7 +462,10 @@ export default function JobsPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="job-sort-order">Sort by</Label>
+            <Label htmlFor="job-sort-order" className="inline-flex items-center gap-2">
+              <HugeiconsIcon icon={Sorting05Icon} className="h-4 w-4" />
+              Sort by
+            </Label>
             <select
               id="job-sort-order"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
@@ -471,7 +479,81 @@ export default function JobsPage() {
         </div>
       </Card>
 
-      <Card>
+      <Card className="md:hidden p-3">
+        <MobileExpandableList
+          items={visibleJobs}
+          getKey={(job) => job.id}
+          emptyMessage="No jobs found."
+          mobileHeader={(
+            <div className="grid grid-cols-[minmax(0,1fr)_96px_96px] items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">
+              <span>Start Time</span>
+              <span className="text-center">Status</span>
+              <span className="text-left">Site</span>
+            </div>
+          )}
+          renderSummary={(job) => (
+            <div className="grid grid-cols-[minmax(0,1fr)_96px_96px] items-center gap-2">
+              <p className="min-w-0 truncate text-sm font-semibold text-dark-primary">
+                {job.scheduled_start_time
+                  ? new Date(job.scheduled_start_time).toLocaleString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                  : "-"}
+              </p>
+              <span className={`justify-self-center inline-flex rounded-md px-2 py-0.5 text-[10px] font-medium capitalize ${getStatusBadgeClass(job.status)}`}>
+                {job.status.replace("_", " ")}
+              </span>
+              <span className="justify-self-start w-full truncate text-xs text-dark-primary">
+                {job.site.site_name ?? job.site.client_name ?? "-"}
+              </span>
+            </div>
+          )}
+          renderDetails={(job) => (
+            <div className="space-y-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Title</p>
+                <p className="text-sm text-dark-primary">{job.title}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Site</p>
+                <p className="text-sm text-dark-primary">
+                  {[job.site.address_line_1, job.site.address_line_2, job.site.city, job.site.postcode]
+                    .filter(Boolean)
+                    .join(", ") || "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Scheduled Engineer</p>
+                <p className="text-sm text-dark-primary">{job.engineer?.full_name ?? "Unassigned"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Scheduled Window</p>
+                <p className="text-sm text-dark-primary">{formatScheduledWindow(job.scheduled_start_time ?? null, job.scheduled_end_time ?? null)}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="primary" className="flex-1" onClick={() => router.push(`/jobs/${job.id}`)}>
+                  View Detail
+                </Button>
+                {canManageJobs && (
+                  <>
+                    <Button size="sm" variant="outline" className="flex-1" onClick={() => openEditJob(job)}>
+                      Edit
+                    </Button>
+                    <Button size="sm" variant="destructive" className="flex-1" onClick={() => setDeletingJob(job)}>
+                      Delete
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        />
+      </Card>
+
+      <Card className="hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -481,7 +563,6 @@ export default function JobsPage() {
               <TableHead>Engineer</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Scheduled Window</TableHead>
-              <TableHead>Last Edited</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -505,7 +586,6 @@ export default function JobsPage() {
                   </span>
                 </TableCell>
                 <TableCell>{formatScheduledWindow(job.scheduled_start_time ?? null, job.scheduled_end_time ?? null)}</TableCell>
-                <TableCell>{formatLastEdited(job.updated_at, job.created_at)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button
@@ -550,7 +630,7 @@ export default function JobsPage() {
             ))}
             {visibleJobs.length === 0 && !error && (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                   No jobs found.
                 </TableCell>
               </TableRow>

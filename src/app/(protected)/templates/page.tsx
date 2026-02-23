@@ -2,15 +2,16 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
+import Image from "next/image";
 import { toast } from "@/hooks/use-toast";
 import type { TemplateDetail, TemplateListItem, TemplatesResponse } from "@/types/models";
 import { type FormEvent, useEffect, useState } from "react";
-import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MobileExpandableList } from "@/components/ui/mobile-expandable-list";
 import {
   Dialog,
   DialogContent,
@@ -305,7 +306,7 @@ export default function TemplatesPage() {
         <h1 className="text-2xl font-semibold text-dark-primary">Templates</h1>
         {canManageTemplates && (
           <Button variant={showForm ? "outline" : "primary"} onClick={() => setShowForm((v) => !v)}>
-            {showForm ? "Cancel" : (<><Plus className="h-4 w-4" />Create template</>)}
+            {showForm ? "Cancel" : (<><Image src="/assets/Plus_rectangle.svg" alt="" width={16} height={16} className="h-4 w-4" aria-hidden />Create template</>)}
           </Button>
         )}
       </div>
@@ -402,14 +403,69 @@ export default function TemplatesPage() {
                 </div>
               </div>
               <Button type="submit" disabled={submitting}>
-                {submitting ? "Creating…" : "Create template"}
+                {submitting ? "Creating…" : (<><Image src="/assets/Plus_rectangle.svg" alt="" width={16} height={16} className="h-4 w-4" aria-hidden />Create template</>)}
               </Button>
             </form>
           </CardContent>
         </Card>
       )}
 
-      <Card>
+      <Card className="md:hidden p-3">
+        <MobileExpandableList
+          items={templates}
+          getKey={(t) => t.id}
+          emptyMessage={canManageTemplates ? "No templates yet. Create one above." : "No templates yet."}
+          mobileHeader={(
+            <div className="grid grid-cols-[1fr_auto] items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">
+              <span>Template</span>
+              <span>Status</span>
+            </div>
+          )}
+          renderSummary={(t) => (
+            <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+              <p className="min-w-0 truncate text-sm font-semibold text-dark-primary">{t.name}</p>
+              <span className={`justify-self-start rounded-full border px-2 py-0.5 text-[10px] ${t.is_active ? "border-highlight-green bg-light-green text-dark-green" : "border-subtle bg-white text-text-dark-gray"}`}>
+                {t.is_active ? "Active" : "Inactive"}
+              </span>
+            </div>
+          )}
+          renderDetails={(t) => (
+            <div className="space-y-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Description</p>
+                <p className="text-sm text-dark-primary">{t.description ?? "-"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Areas</p>
+                <p className="text-sm text-dark-primary">{t.area_count}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="flex-1"
+                  disabled={loadingDetail}
+                  onClick={() => openTemplateDetail(t.id)}
+                >
+                  View Detail
+                </Button>
+                {canManageTemplates && (
+                  <>
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => startEditTemplate(t)}>
+                      Edit
+                    </Button>
+                    <Button variant="destructive" size="sm" className="flex-1" onClick={() => setDeletingTemplate(t)}>
+                      Delete
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        />
+      </Card>
+
+      <Card className="hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -417,7 +473,6 @@ export default function TemplatesPage() {
               <TableHead>Description</TableHead>
               <TableHead>Areas</TableHead>
               <TableHead>Active</TableHead>
-              <TableHead>Last Edited</TableHead>
               <TableHead className="w-[220px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -428,7 +483,6 @@ export default function TemplatesPage() {
                 <TableCell className="max-w-xs truncate text-muted-foreground">{t.description ?? "—"}</TableCell>
                 <TableCell>{t.area_count}</TableCell>
                 <TableCell>{t.is_active ? "Yes" : "No"}</TableCell>
-                <TableCell>{formatLastEdited(t.updated_at, t.created_at)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button
@@ -465,7 +519,7 @@ export default function TemplatesPage() {
             ))}
             {templates.length === 0 && !error && (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                   {canManageTemplates ? "No templates yet. Create one above." : "No templates yet."}
                 </TableCell>
               </TableRow>
@@ -484,6 +538,10 @@ export default function TemplatesPage() {
               {viewDetail.description && (
                 <p className="text-sm text-muted-foreground">{viewDetail.description}</p>
               )}
+              <p className="text-sm">
+                <span className="font-medium text-muted-foreground">Last Edited:</span>{" "}
+                {formatLastEdited(viewDetail.updated_at, viewDetail.created_at)}
+              </p>
               <div>
                 <p className="text-sm font-medium mb-2">
                   Areas ({viewDetail.areas.length})

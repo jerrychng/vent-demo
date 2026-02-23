@@ -223,7 +223,7 @@ export default function EngineerHomePage() {
           </div>
         </div>
 
-        <div className="relative mb-4 overflow-hidden rounded-xl bg-gradient-to-br from-primary via-secondary to-secondary p-6 text-white">
+        <div className="relative mb-4 overflow-hidden rounded-xl bg-gradient-to-br from-dark-primary via-primary to-primary p-6 text-white">
           <div className="absolute -right-10 top-2 h-32 w-32 rounded-full bg-white/15" />
           <div className="absolute -left-14 bottom-0 h-24 w-24 rounded-full bg-white/10" />
           <div className="relative z-10 flex items-center justify-between">

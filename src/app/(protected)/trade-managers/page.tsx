@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
+import Image from "next/image";
 import { getPasswordValidationError, PASSWORD_POLICY } from "@/lib/passwordValidation";
 import { getPhoneValidationError, PHONE_POLICY } from "@/lib/phoneValidation";
 import type { User, UserListItem, UsersResponse } from "@/types/models";
@@ -11,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordField } from "@/components/ui/password-field";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { MobileExpandableList } from "@/components/ui/mobile-expandable-list";
 import {
   Dialog,
   DialogContent,
@@ -122,7 +124,7 @@ export default function TradeManagersPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Trade Managers</h1>
         <Button variant={showForm ? "outline" : "primary"} onClick={() => setShowForm((v) => !v)}>
-          {showForm ? "Cancel" : "Create trade manager"}
+          {showForm ? "Cancel" : (<><Image src="/assets/Plus_rectangle.svg" alt="" width={16} height={16} className="h-4 w-4" aria-hidden />Create trade manager</>)}
         </Button>
       </div>
 
@@ -204,14 +206,61 @@ export default function TradeManagersPage() {
                 </div>
               </div>
               <Button type="submit" disabled={submitting || !!passwordError || !!phoneError}>
-                {submitting ? "Creating..." : "Create trade manager"}
+                {submitting ? "Creating..." : (<><Image src="/assets/Plus_rectangle.svg" alt="" width={16} height={16} className="h-4 w-4" aria-hidden />Create trade manager</>)}
               </Button>
             </form>
           </CardContent>
         </Card>
       )}
 
-      <Card>
+      <Card className="md:hidden p-3">
+        <MobileExpandableList
+          items={users}
+          getKey={(u) => u.id}
+          emptyMessage="No trade managers in this list."
+          mobileHeader={(
+            <div className="grid grid-cols-[1fr_auto] items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">
+              <span>Name</span>
+              <span>Status</span>
+            </div>
+          )}
+          renderSummary={(u) => (
+            <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+              <p className="min-w-0 truncate text-sm font-semibold text-dark-primary">{u.full_name}</p>
+              <span className={`justify-self-start rounded-full border px-2 py-0.5 text-[10px] ${u.is_active ? "border-highlight-green bg-light-green text-dark-green" : "border-subtle bg-white text-text-dark-gray"}`}>
+                {u.is_active ? "Active" : "Inactive"}
+              </span>
+            </div>
+          )}
+          renderDetails={(u) => (
+            <div className="space-y-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Email</p>
+                <p className="text-sm text-dark-primary break-all">{u.email}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Phone</p>
+                <p className="text-sm text-dark-primary">{u.phone_number ?? "-"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Address</p>
+                <p className="text-sm text-dark-primary">{u.address ?? "-"}</p>
+              </div>
+              <Button
+                variant="primary"
+                size="sm"
+                className="w-full"
+                disabled={loadingDetail}
+                onClick={() => openUserDetail(u.id)}
+              >
+                View Detail
+              </Button>
+            </div>
+          )}
+        />
+      </Card>
+
+      <Card className="hidden md:block">
         <Table className="table-fixed">
           <TableHeader>
             <TableRow>

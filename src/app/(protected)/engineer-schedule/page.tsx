@@ -6,7 +6,7 @@ import { apiFetch } from "@/lib/api";
 import type { JobRow, JobsResponse } from "@/types/models";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, CircleDot, MapPin, User, FileText, Clock3 } from "lucide-react";
+import { CircleDot, MapPin, User, FileText, Clock3 } from "lucide-react";
 import _ from "lodash"; 
 
 type ScheduleTab = "upcoming" | "ongoing" | "completed";
@@ -149,7 +149,7 @@ export default function EngineerSchedulePage() {
 
   return (
     <div className="pb-32">
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary via-secondary to-secondary pt-8 px-4 pb-4 text-white">
+      <div className="relative overflow-hidden bg-gradient-to-br from-dark-primary via-primary to-primary pt-8 px-4 pb-4 text-white">
         <div className="absolute right-0 top-3 h-20 w-20 rounded-full bg-white/15" />
         <div className="relative z-10 flex rounded-full border border-white/35 bg-white/10 p-1">
           {scheduleTabs.map((tab) => (
