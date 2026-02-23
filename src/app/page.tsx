@@ -16,7 +16,7 @@ export default function HomePage() {
   }, [router]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-primary">
+    <main className="relative min-h-screen overflow-hidden">
       <div className="md:hidden">
         <Image
           src="/assets/Splash.png"

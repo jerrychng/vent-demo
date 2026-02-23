@@ -168,9 +168,9 @@ export default function TradeManagersPage() {
                     value={form.password}
                     onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                   />
-                  <p className="text-xs text-muted-foreground">
+                  {/* <p className="text-xs text-muted-foreground">
                     Use {PASSWORD_POLICY.minLength}-{PASSWORD_POLICY.maxLength} characters with uppercase, lowercase, number, and special character.
-                  </p>
+                  </p> */}
                   {form.password && passwordError && (
                     <p className="text-xs text-destructive" role="alert">{passwordError}</p>
                   )}

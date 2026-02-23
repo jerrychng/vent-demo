@@ -76,7 +76,7 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{activeCount === null ? "–" : activeCount}</p>
+            <p className="text-3xl font-semibold text-dark-primary">{activeCount === null ? "–" : activeCount}</p>
           </CardContent>
         </Card>
         <Card>
@@ -86,7 +86,7 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">{pending.length}</p>
+            <p className="text-3xl font-semibold text-dark-primary">{pending.length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -96,7 +96,7 @@ export default function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold">
+            <p className="text-3xl font-semibold text-dark-primary">
               {approvedCount === null ? "–" : approvedCount}
             </p>
           </CardContent>
@@ -145,12 +145,12 @@ export default function DashboardPage() {
                   {/* <TableCell>
                     <div className="flex items-center gap-2">
                       {jobPhotoPreview[job.id]?.pre ? (
-                        <img src={jobPhotoPreview[job.id].pre!} alt="Pre" className="h-10 w-10 rounded border object-cover" />
+                        <img src={withBlobSas(jobPhotoPreview[job.id].pre) ?? ""} alt="Pre" className="h-10 w-10 rounded border object-cover" />
                       ) : (
                         <div className="flex h-10 w-10 items-center justify-center rounded border text-[10px] text-muted-foreground">Pre</div>
                       )}
                       {jobPhotoPreview[job.id]?.post ? (
-                        <img src={jobPhotoPreview[job.id].post!} alt="Post" className="h-10 w-10 rounded border object-cover" />
+                        <img src={withBlobSas(jobPhotoPreview[job.id].post) ?? ""} alt="Post" className="h-10 w-10 rounded border object-cover" />
                       ) : (
                         <div className="flex h-10 w-10 items-center justify-center rounded border text-[10px] text-muted-foreground">Post</div>
                       )}

@@ -108,9 +108,9 @@ export default function SetupPage() {
               minLength={PASSWORD_POLICY.minLength}
               required
             />
-            <p className="text-xs text-dark-primary/70">
+            {/* <p className="text-xs text-dark-primary/70">
               Use {PASSWORD_POLICY.minLength}-{PASSWORD_POLICY.maxLength} characters with uppercase, lowercase, number, and special character.
-            </p>
+            </p> */}
             {password && passwordError && (
               <p className="text-xs text-destructive" role="alert">{passwordError}</p>
             )}
