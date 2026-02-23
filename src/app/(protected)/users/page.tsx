@@ -197,7 +197,7 @@ export default function EngineerPage() {
             "Cancel"
           ) : (
             <>
-             
+              <Image src="/assets/Plus_rectangle.svg" alt="" width={16} height={16} className="h-4 w-4" aria-hidden />
               Create engineer
             </>
           )}
@@ -286,7 +286,7 @@ export default function EngineerPage() {
                   "Creating..."
                 ) : (
                   <>
-                    
+                    <Image src="/assets/Plus_rectangle.svg" alt="" width={16} height={16} className="h-4 w-4" aria-hidden />
                     Create engineer
                   </>
                 )}
