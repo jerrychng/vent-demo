@@ -2,6 +2,8 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { withBlobSas } from "@/lib/blobUrl";
+import { getJobCaptures, uploadJobCapture, type CaptureSide } from "@/lib/workCapturesApi";
 import type { JobDetail } from "@/types/models";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -9,8 +11,6 @@ import Webcam from "react-webcam";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Camera } from "lucide-react";
-
-type CaptureSide = "pre" | "post";
 
 function dataUrlToFile(dataUrl: string, filename: string): File {
   const [meta, content] = dataUrl.split(",");
@@ -35,16 +35,50 @@ export default function EngineerJobDetailPage() {
   const [cameraTarget, setCameraTarget] = useState<{ areaId: number; side: CaptureSide } | null>(null);
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [captureProgress, setCaptureProgress] = useState<{
+    totalAreas: number;
+    completedAreas: number;
+    completionPercentage: number;
+  } | null>(null);
+
+  async function loadCaptures(jobId: string): Promise<JobDetail["captures"]> {
+    const data = await getJobCaptures(jobId);
+    setCaptureProgress({
+      totalAreas: data.total_areas,
+      completedAreas: data.completed_areas,
+      completionPercentage: data.completion_percentage,
+    });
+    return data.captures.map((capture) => ({
+      id: 0,
+      job_id: Number(jobId),
+      template_area_id: capture.template_area_id ?? capture.area_id ?? 0,
+      area_name: capture.area_name,
+      order_index: capture.order_index,
+      photo_guidance: null,
+      pre_image_url: capture.pre_image_url,
+      pre_thumbnail_url: capture.pre_thumbnail_url,
+      pre_captured_at: capture.pre_captured_at,
+      post_image_url: capture.post_image_url,
+      post_thumbnail_url: capture.post_thumbnail_url,
+      post_captured_at: capture.post_captured_at,
+      notes: null,
+      created_at: "",
+      updated_at: "",
+    }));
+  }
 
   async function loadJob() {
     const jobId = params.id;
     if (!jobId) return;
-    const data = await apiFetch<JobDetail>(`/jobs/${jobId}`);
+    const [data, captures] = await Promise.all([
+      apiFetch<JobDetail>(`/jobs/${jobId}`),
+      loadCaptures(jobId),
+    ]);
     setJob({
       ...data,
       site: { ...data.site },
       engineer: data.engineer ? { ...data.engineer } : null,
-      captures: data.captures.map((capture) => ({ ...capture })),
+      captures,
     });
   }
 
@@ -98,12 +132,7 @@ export default function EngineerJobDetailPage() {
     setUploadingKey(key);
     try {
       const file = dataUrlToFile(screenshot, `${side}-area-${areaId}.jpg`);
-      const formData = new FormData();
-      formData.append("image", file);
-      await apiFetch(`/jobs/${job.id}/captures/${areaId}/${side}`, {
-        method: "POST",
-        body: formData,
-      });
+      await uploadJobCapture(job.id, areaId, side, file);
       await loadJob();
       setCameraTarget(null);
     } catch (err: unknown) {
@@ -170,6 +199,11 @@ export default function EngineerJobDetailPage() {
           <CardTitle>{job.title}</CardTitle>
           <p className="text-sm text-muted-foreground">Reference: {job.reference}</p>
           <p className="text-sm text-muted-foreground">Status: {job.status.replace("_", " ")}</p>
+          {captureProgress && (
+            <p className="text-sm text-muted-foreground">
+              Completion: {captureProgress.completedAreas}/{captureProgress.totalAreas} ({captureProgress.completionPercentage}%)
+            </p>
+          )}
         </CardHeader>
       </Card>
 
@@ -196,7 +230,7 @@ export default function EngineerJobDetailPage() {
                   <p className="text-sm font-medium">Pre</p>
                   {capture.pre_image_url ? (
                     <img
-                      src={capture.pre_image_url}
+                      src={withBlobSas(capture.pre_image_url) ?? ""}
                       alt={`Pre - ${capture.area_name}`}
                       className="h-40 w-full rounded-md border object-cover"
                     />
@@ -221,7 +255,7 @@ export default function EngineerJobDetailPage() {
                   <p className="text-sm font-medium">Post</p>
                   {capture.post_image_url ? (
                     <img
-                      src={capture.post_image_url}
+                      src={withBlobSas(capture.post_image_url) ?? ""}
                       alt={`Post - ${capture.area_name}`}
                       className="h-40 w-full rounded-md border object-cover"
                     />

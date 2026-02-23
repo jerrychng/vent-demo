@@ -80,6 +80,80 @@ function getUserForToken(token: string | null): User | null {
 }
 
 const now = () => new Date().toISOString();
+const MOCK_BLOB_BASE_URL = "https://vnthygiene.blob.core.windows.net/vnt-hygiene";
+
+function toBlobTimestamp(iso: string): string {
+  const dt = new Date(iso);
+  const y = dt.getUTCFullYear();
+  const m = String(dt.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(dt.getUTCDate()).padStart(2, "0");
+  const h = String(dt.getUTCHours()).padStart(2, "0");
+  const min = String(dt.getUTCMinutes()).padStart(2, "0");
+  const s = String(dt.getUTCSeconds()).padStart(2, "0");
+  return `${y}${m}${d}_${h}${min}${s}`;
+}
+
+function randomHexSuffix(len = 6): string {
+  let out = "";
+  while (out.length < len) {
+    out += Math.floor(Math.random() * 0x1000000).toString(16).padStart(6, "0");
+  }
+  return out.slice(0, len);
+}
+
+function inferImageExtension(image: Blob): string {
+  if (typeof File !== "undefined" && image instanceof File) {
+    const match = image.name.match(/\.([a-zA-Z0-9]+)$/);
+    if (match?.[1]) return match[1].toLowerCase();
+  }
+  const mime = image.type.toLowerCase();
+  if (mime === "image/png") return "png";
+  if (mime === "image/webp") return "webp";
+  if (mime === "image/heic") return "heic";
+  return "jpg";
+}
+
+function buildCaptureBlobUrls(jobId: string, areaId: number, side: "pre" | "post", iso: string, image: Blob) {
+  const stamp = toBlobTimestamp(iso);
+  const suffix = randomHexSuffix(6);
+  const ext = inferImageExtension(image);
+  const filename = `${side}_${stamp}_${suffix}.${ext}`;
+  const thumbFilename = `${side}_${stamp}_${suffix}_thumb.${ext}`;
+  const basePath = `job-images/jobs/${jobId}/areas/${areaId}`;
+  return {
+    imageUrl: `${MOCK_BLOB_BASE_URL}/${basePath}/${filename}`,
+    thumbnailUrl: `${MOCK_BLOB_BASE_URL}/${basePath}/${thumbFilename}`,
+  };
+}
+
+function withSas(url: string): string {
+  const raw = process.env.NEXT_PUBLIC_BLOB_SAS_TOKEN?.trim();
+  if (!raw) return url;
+  const token = raw.startsWith("?") ? raw.slice(1) : raw;
+  return `${url}${url.includes("?") ? "&" : "?"}${token}`;
+}
+
+async function uploadBlobViaSas(blobUrl: string, file: Blob): Promise<void> {
+  const target = withSas(blobUrl);
+  const res = await fetch(target, {
+    method: "PUT",
+    headers: {
+      "x-ms-blob-type": "BlockBlob",
+      "Content-Type": file.type || "application/octet-stream",
+    },
+    body: file,
+  });
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`Azure upload failed (${res.status}) ${detail}`.trim());
+  }
+}
+
+async function uploadCaptureAssets(urls: { imageUrl: string; thumbnailUrl: string }, image: Blob): Promise<void> {
+  await uploadBlobViaSas(urls.imageUrl, image);
+  // Until thumbnail generation is implemented, write the same image bytes to the thumb object.
+  await uploadBlobViaSas(urls.thumbnailUrl, image);
+}
 
 // --- Mock sites (shared with job details) ---
 let nextSiteId = 3;
@@ -676,10 +750,25 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
     const job = mockJobDetails[id];
     if (!job) throw new Error("Job not found");
     const total = job.captures.length;
-    const done = job.captures.filter((c) => !!c.post_image_url).length;
+    const done = job.captures.filter((c) => !!c.pre_image_url && !!c.post_image_url).length;
+    const completionPercentage = total > 0 ? Number(((done / total) * 100).toFixed(1)) : 0;
     return {
-      captures: job.captures,
-      completion_percentage: total > 0 ? Math.round((done / total) * 100) : 0,
+      captures: job.captures.map((capture) => ({
+        area_id: capture.template_area_id,
+        template_area_id: capture.template_area_id,
+        area_name: capture.area_name,
+        order_index: capture.order_index,
+        pre_image_url: capture.pre_image_url,
+        pre_thumbnail_url: capture.pre_thumbnail_url,
+        pre_captured_at: capture.pre_captured_at,
+        post_image_url: capture.post_image_url,
+        post_thumbnail_url: capture.post_thumbnail_url,
+        post_captured_at: capture.post_captured_at,
+        is_complete: !!capture.pre_image_url && !!capture.post_image_url,
+      })),
+      total_areas: total,
+      completed_areas: done,
+      completion_percentage: completionPercentage,
     };
   }
 
@@ -721,34 +810,59 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
     }
 
     if (side === "post" && !capture.pre_image_url) {
-      throw new Error("Pre image must be uploaded before post image");
-    }
-
-    let imageUrl = "";
-    if (body instanceof FormData) {
-      const image = body.get("image");
-      if (!(image instanceof Blob)) throw new Error("image file is required");
-      imageUrl =
-        typeof URL !== "undefined" && typeof URL.createObjectURL === "function"
-          ? URL.createObjectURL(image)
-          : `data:image/jpeg;base64,`;
-    } else {
-      throw new Error("multipart/form-data required");
+      const err = new Error("Must upload pre-work image before post-work image") as Error & { status?: number };
+      err.status = 400;
+      throw err;
     }
 
     const ts = now();
-    if (side === "pre") {
-      capture.pre_image_url = imageUrl;
-      capture.pre_thumbnail_url = imageUrl;
-      capture.pre_captured_at = ts;
+    let urls: { imageUrl: string; thumbnailUrl: string } | null = null;
+    if (body instanceof FormData) {
+      const image = body.get("image");
+      if (!(image instanceof Blob)) throw new Error("image file is required");
+      urls = buildCaptureBlobUrls(jobId, areaId, side as "pre" | "post", ts, image);
+      try {
+        await uploadCaptureAssets(urls, image);
+      } catch (err) {
+        console.warn("Mock Azure upload failed; using local preview URL instead.", err);
+        // Fallback for local dev when Azure CORS/SAS is not configured yet.
+        const localUrl =
+          typeof URL !== "undefined" && typeof URL.createObjectURL === "function"
+            ? URL.createObjectURL(image)
+            : `data:image/jpeg;base64,`;
+        urls = {
+          imageUrl: localUrl,
+          thumbnailUrl: localUrl,
+        };
+      }
     } else {
-      capture.post_image_url = imageUrl;
-      capture.post_thumbnail_url = imageUrl;
-      capture.post_captured_at = ts;
+      throw new Error("multipart/form-data required");
     }
-    capture.updated_at = ts;
-    job.updated_at = ts;
-    return capture;
+    if (!urls) throw new Error("Failed to prepare upload URLs");
+
+    if (side === "pre") {
+      capture.pre_image_url = urls.imageUrl;
+      capture.pre_thumbnail_url = urls.thumbnailUrl;
+      capture.pre_captured_at = ts;
+      capture.updated_at = ts;
+      job.updated_at = ts;
+      return {
+        image_url: capture.pre_image_url,
+        thumbnail_url: capture.pre_thumbnail_url,
+        captured_at: capture.pre_captured_at,
+      };
+    } else {
+      capture.post_image_url = urls.imageUrl;
+      capture.post_thumbnail_url = urls.thumbnailUrl;
+      capture.post_captured_at = ts;
+      capture.updated_at = ts;
+      job.updated_at = ts;
+      return {
+        image_url: capture.post_image_url,
+        thumbnail_url: capture.post_thumbnail_url,
+        captured_at: capture.post_captured_at,
+      };
+    }
   }
 
   // GET /sites

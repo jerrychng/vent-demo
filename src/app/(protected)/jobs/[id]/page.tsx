@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import { withBlobSas } from "@/lib/blobUrl";
 import type { JobDetail } from "@/types/models";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -193,7 +194,7 @@ export default function JobDetailPage() {
                     <p className="text-xs font-medium uppercase text-muted-foreground mb-1">Pre-work</p>
                     {capture.pre_image_url ? (
                       <img
-                        src={capture.pre_image_url}
+                        src={withBlobSas(capture.pre_image_url) ?? ""}
                         alt="Pre work"
                         className="w-full max-h-64 object-cover rounded-md border border-border"
                       />
@@ -207,7 +208,7 @@ export default function JobDetailPage() {
                     <p className="text-xs font-medium uppercase text-muted-foreground mb-1">Post-work</p>
                     {capture.post_image_url ? (
                       <img
-                        src={capture.post_image_url}
+                        src={withBlobSas(capture.post_image_url) ?? ""}
                         alt="Post work"
                         className="w-full max-h-64 object-cover rounded-md border border-border"
                       />

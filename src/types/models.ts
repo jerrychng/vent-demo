@@ -130,6 +130,38 @@ export type WorkCaptureWithArea = WorkCapture & {
   photo_guidance?: string | null;
 };
 
+/** GET /jobs/:id/captures row. */
+export type WorkCaptureSummary = Pick<
+  WorkCaptureWithArea,
+  | "template_area_id"
+  | "area_name"
+  | "order_index"
+  | "pre_image_url"
+  | "pre_thumbnail_url"
+  | "pre_captured_at"
+  | "post_image_url"
+  | "post_thumbnail_url"
+  | "post_captured_at"
+> & {
+  area_id?: number;
+  is_complete: boolean;
+};
+
+/** GET /jobs/:id/captures payload. */
+export type WorkCapturesResponse = {
+  captures: WorkCaptureSummary[];
+  total_areas: number;
+  completed_areas: number;
+  completion_percentage: number;
+};
+
+/** POST /jobs/:id/captures/:area_id/pre|post payload. */
+export type WorkCaptureUploadResponse = {
+  image_url: string;
+  thumbnail_url: string;
+  captured_at: string;
+};
+
 /** Job detail: job with embedded site, engineer, and captures (with area info). */
 export type JobDetail = Omit<Job, "site_id" | "template_id" | "engineer_id" | "created_by"> & {
   site: Site;
