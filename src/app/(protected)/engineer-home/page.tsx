@@ -81,19 +81,11 @@ export default function EngineerHomePage() {
   if (profileOpen) {
     return (
       <>
-        <div
-          className="bg-white p-4 pb-32"
-          style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
-        >
+        <div className="bg-white p-4 pb-32">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={() => setProfileOpen(false)}
-              className="inline-flex items-center gap-2 text-primary"
-            >
-              <ArrowLeft className="h-6 w-6" />
-              <span className="text-2xl font-semibold">Profile</span>
-            </button>
+            <p className="text-2xl font-semibold text-primary">
+              Welcome <span className="text-dark-primary">to Aspect!</span>
+            </p>
           </div>
 
           <div className="rounded-[12px] border border-subtle bg-[linear-gradient(180deg,var(--color-bg-bakground)_0%,white_100%)] p-5 shadow-[0_2px_8px_rgba(39,84,157,0.06)]">
@@ -132,14 +124,16 @@ export default function EngineerHomePage() {
               </span>
             </div>
 
-            <div className="space-y-3 text-base text-text-body">
-              <p className="inline-flex items-center gap-2">
+            <div className="space-y-4 text-base text-text-body">
+              <p className="inline-flex items-center gap-3">
                 <Phone className="h-4 w-4 text-text-dark-gray" />
-                Phone: {user.phone_number?.trim() ? user.phone_number : "Not provided"}
+                <span className="font-medium">Phone:</span>
+                <span>{user.phone_number?.trim() ? user.phone_number : "Not provided"}</span>
               </p>
-              <p className="inline-flex items-center gap-2 break-all">
+              <p className="inline-flex items-center gap-3 break-all">
                 <Mail className="h-4 w-4 text-text-dark-gray" />
-                Email: {user.email}
+                <span className="font-medium">Email:</span>
+                <span>{user.email}</span>
               </p>
             </div>
 
@@ -192,7 +186,7 @@ export default function EngineerHomePage() {
           </div>
         </div>
 
-        <EngineerBottomBar active="home" />
+        {/* <EngineerBottomBar active="home" /> */}
       </>
     );
   }
@@ -334,7 +328,7 @@ export default function EngineerHomePage() {
 
       </div>
 
-      <EngineerBottomBar active="home" />
+      {/* <EngineerBottomBar active="home" /> */}
     {/* </div> */}
     </>
   );

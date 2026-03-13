@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
 type EngineerBottomBarProps = {
-  active: "home" | "schedule" | "vehicle" | "inventory";
+  active: "home" | "schedule";
 };
 
 function NavIcon({ iconPath }: { iconPath: string }) {
@@ -31,10 +31,8 @@ export default function EngineerBottomBar({ active }: EngineerBottomBarProps) {
   const { user } = useAuth();
 
   const navItems = [
-    { key: "home", label: "Home", icon: "/assets/navigation/home-icon.svg", route: "/engineer-home" },
+    { key: "home", label: "Home", icon: "/assets/navigation/home-icon.svg", route: "/engineer-schedule" },
     { key: "schedule", label: "Schedule", icon: "/assets/calendar.svg", route: "/engineer-schedule" },
-    { key: "vehicle", label: "Vehicle", icon: "/assets/aspect-van.svg", route: "/engineer-home" },
-    { key: "inventory", label: "Inventory", icon: "/assets/file-text.svg", route: "/engineer-home" },
   ] as const;
   const visibleNavItems = user?.is_active === false
     ? navItems.filter((item) => item.key !== "schedule")
@@ -45,7 +43,11 @@ export default function EngineerBottomBar({ active }: EngineerBottomBarProps) {
       className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-md border-t border-subtle bg-white px-3 pt-3 shadow-[0_-6px_18px_rgba(23,50,94,0.08)]"
       style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
     >
-      <div className={`grid overflow-hidden ${visibleNavItems.length === 3 ? "grid-cols-3" : "grid-cols-4"}`}>
+      <div
+        className={`grid overflow-hidden ${
+          visibleNavItems.length === 2 ? "grid-cols-2" : "grid-cols-1"
+        }`}
+      >
         {visibleNavItems.map((item) => {
           const isActive = active === item.key;
           return (

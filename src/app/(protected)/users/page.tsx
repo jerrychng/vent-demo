@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordField } from "@/components/ui/password-field";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MobileExpandableList } from "@/components/ui/mobile-expandable-list";
 import {
@@ -56,11 +57,15 @@ export default function EngineerPage() {
     full_name: "",
     phone_number: "",
     address: "",
+    is_operative: false,
+    is_driver: false,
   });
   const [editForm, setEditForm] = useState({
     is_active: true,
     phone_number: "",
     address: "",
+    is_operative: false,
+    is_driver: false,
   });
   const passwordError = getPasswordValidationError(form.password);
   const phoneError = getPhoneValidationError(form.phone_number);
@@ -111,6 +116,8 @@ export default function EngineerPage() {
           full_name: form.full_name,
           phone_number: form.phone_number.trim(),
           address: form.address.trim(),
+          is_operative: form.is_operative,
+          is_driver: form.is_driver,
           role: "engineer",
         }),
       });
@@ -118,7 +125,15 @@ export default function EngineerPage() {
       const t = toast({ title: "Engineer created successfully." });
       setTimeout(() => t.dismiss(), 4000);
       setShowForm(false);
-      setForm({ email: "", password: "", full_name: "", phone_number: "", address: "" });
+      setForm({
+        email: "",
+        password: "",
+        full_name: "",
+        phone_number: "",
+        address: "",
+        is_operative: false,
+        is_driver: false,
+      });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create engineer");
     } finally {
@@ -136,6 +151,8 @@ export default function EngineerPage() {
           is_active: detail.is_active,
           phone_number: detail.phone_number ?? "",
           address: detail.address ?? "",
+          is_operative: detail.is_operative ?? false,
+          is_driver: detail.is_driver ?? false,
         });
       })
       .catch((err: unknown) => {
@@ -156,6 +173,8 @@ export default function EngineerPage() {
           is_active: editForm.is_active,
           phone_number: editForm.phone_number.trim() || null,
           address: editForm.address.trim() || null,
+          is_operative: editForm.is_operative,
+          is_driver: editForm.is_driver,
         }),
       });
       await loadEngineers();
@@ -280,6 +299,29 @@ export default function EngineerPage() {
                   />
                 </div>
               </div>
+            <div className="space-y-2">
+              <Label>Engineer type</Label>
+              <div className="flex flex-wrap gap-6 text-sm">
+                <label className="flex items-center gap-2">
+                  <Checkbox
+                    checked={form.is_operative}
+                    onCheckedChange={(checked) =>
+                      setForm((f) => ({ ...f, is_operative: Boolean(checked) }))
+                    }
+                  />
+                  <span>Operative</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <Checkbox
+                    checked={form.is_driver}
+                    onCheckedChange={(checked) =>
+                      setForm((f) => ({ ...f, is_driver: Boolean(checked) }))
+                    }
+                  />
+                  <span>Driver</span>
+                </label>
+              </div>
+            </div>
               <Button type="submit" disabled={submitting || !!passwordError || !!phoneError}>
                 {submitting ? (
                   "Creating..."
@@ -327,6 +369,12 @@ export default function EngineerPage() {
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Address</p>
                 <p className="text-sm text-dark-primary">{u.address ?? "-"}</p>
               </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Engineer type</p>
+                <p className="text-sm text-dark-primary">
+                  {[u.is_operative ? "Operative" : null, u.is_driver ? "Driver" : null].filter(Boolean).join(" • ") || "-"}
+                </p>
+              </div>
               <div className="flex gap-2">
                 <Button
                   variant="primary"
@@ -354,6 +402,7 @@ export default function EngineerPage() {
               <TableHead className="w-[180px]">Email</TableHead>
               <TableHead className="w-[130px]">Phone</TableHead>
               <TableHead className="w-[200px]">Address</TableHead>
+              <TableHead className="w-[140px]">Type</TableHead>
               <TableHead className="w-[70px]">Active</TableHead>
               <TableHead className="w-[220px] text-right">Actions</TableHead>
             </TableRow>
@@ -365,6 +414,9 @@ export default function EngineerPage() {
                 <TableCell className="text-muted-foreground align-top whitespace-normal break-words">{u.email}</TableCell>
                 <TableCell className="align-top whitespace-normal break-words">{u.phone_number ?? "-"}</TableCell>
                 <TableCell className="align-top whitespace-normal break-words">{u.address ?? "-"}</TableCell>
+                <TableCell className="align-top whitespace-normal break-words">
+                  {[u.is_operative ? "Operative" : null, u.is_driver ? "Driver" : null].filter(Boolean).join(", ") || "-"}
+                </TableCell>
                 <TableCell className="align-top">{u.is_active ? "Yes" : "No"}</TableCell>
                 <TableCell className="text-right align-top">
                   <div className="flex justify-end gap-2">
@@ -386,7 +438,7 @@ export default function EngineerPage() {
             ))}
             {users.length === 0 && !error && (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                   No engineers in this list.
                 </TableCell>
               </TableRow>
@@ -407,6 +459,14 @@ export default function EngineerPage() {
               <p><span className="font-medium text-muted-foreground">Address:</span> {viewDetail.address ?? "-"}</p>
               <p><span className="font-medium text-muted-foreground">Role:</span> <span className="capitalize">{viewDetail.role.replace("_", " ")}</span></p>
               <p><span className="font-medium text-muted-foreground">Active:</span> {viewDetail.is_active ? "Yes" : "No"}</p>
+              <p>
+                <span className="font-medium text-muted-foreground">Operative:</span>{" "}
+                {viewDetail.is_operative ? "Yes" : "No"}
+              </p>
+              <p>
+                <span className="font-medium text-muted-foreground">Driver:</span>{" "}
+                {viewDetail.is_driver ? "Yes" : "No"}
+              </p>
               <p><span className="font-medium text-muted-foreground">Last Edited:</span> {formatLastEdited(viewDetail.updated_at, viewDetail.created_at)}</p>
               {viewDetail.created_at && (
                 <p className="text-muted-foreground text-xs">
@@ -458,6 +518,29 @@ export default function EngineerPage() {
                 value={editForm.address}
                 onChange={(e) => setEditForm((f) => ({ ...f, address: e.target.value }))}
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Engineer type</Label>
+              <div className="flex flex-wrap gap-6 text-sm">
+                <label className="flex items-center gap-2">
+                  <Checkbox
+                    checked={editForm.is_operative}
+                    onCheckedChange={(checked) =>
+                      setEditForm((f) => ({ ...f, is_operative: Boolean(checked) }))
+                    }
+                  />
+                  <span>Operative</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <Checkbox
+                    checked={editForm.is_driver}
+                    onCheckedChange={(checked) =>
+                      setEditForm((f) => ({ ...f, is_driver: Boolean(checked) }))
+                    }
+                  />
+                  <span>Driver</span>
+                </label>
+              </div>
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setEditingUser(null)} disabled={savingEdit}>

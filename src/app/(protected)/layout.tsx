@@ -48,7 +48,7 @@ function SidebarContent({
   const normalizedPath = pathname.replace(/\/+$/, "") || "/";
   const isDashboardActive =
     user.role === "engineer"
-      ? normalizedPath.startsWith("/engineer-home")
+      ? normalizedPath.startsWith("/engineer-schedule")
       : normalizedPath.startsWith("/dashboard");
   const navAlignClass = compact ? "justify-center lg:justify-start" : "justify-start";
   const itemLabelClass = compact ? "hidden lg:inline" : "inline";
@@ -84,7 +84,7 @@ function SidebarContent({
       <nav className="flex-1 px-2 py-2">
         <ul className="flex flex-col gap-3">
           <li>
-            <Link href={user.role === "engineer" ? "/engineer-home" : "/dashboard"} onClick={onNavClick}>
+            <Link href={user.role === "engineer" ? "/engineer-schedule" : "/dashboard"} onClick={onNavClick}>
               <Button
                 variant="transparent"
                 className={`${isDashboardActive ? sidebarNavActiveClass : sidebarNavClass} ${navAlignClass}`}
@@ -98,24 +98,6 @@ function SidebarContent({
                   aria-hidden
                 />
                 <span className={itemLabelClass}>{user.role === "engineer" ? "Home" : "Dashboard"}</span>
-              </Button>
-            </Link>
-          </li>
-          <li>
-            <Link href="/jobs" onClick={onNavClick}>
-              <Button
-                variant="transparent"
-                className={`${pathname.startsWith("/jobs") ? sidebarNavActiveClass : sidebarNavClass} ${navAlignClass}`}
-              >
-                <Image
-                  src="/assets/navigation/work-icon.svg"
-                  alt=""
-                  width={20}
-                  height={20}
-                  className="h-5 w-5 shrink-0 object-contain"
-                  aria-hidden
-                />
-                <span className={itemLabelClass}>Jobs</span>
               </Button>
             </Link>
           </li>

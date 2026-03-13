@@ -71,7 +71,7 @@ export default function JobDetailPage() {
         setRejectReason("");
       }
 
-      router.push("/jobs");
+      router.back();
     } catch (err: unknown) {
       setActionError(err instanceof Error ? err.message : "Review action failed");
     } finally {
@@ -109,8 +109,8 @@ export default function JobDetailPage() {
 
   return (
     <div className="space-y-4">
-      <Button variant="transparent" size="sm" onClick={() => router.push("/jobs")} className="text-muted-foreground">
-        <ArrowLeftIcon className="w-4 h-4 mr-2" /> Back to Jobs
+      <Button variant="transparent" size="sm" onClick={() => router.back()} className="text-muted-foreground">
+        <ArrowLeftIcon className="w-4 h-4 mr-2" /> Back
       </Button>
 
       <Card>
@@ -177,19 +177,16 @@ export default function JobDetailPage() {
           .sort((a, b) => a.order_index - b.order_index)
           .map((capture) => (
             <Card key={capture.template_area_id}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm">
-                    Area {capture.order_index}: {capture.area_name}
-                  </CardTitle>
-                  <span className="text-xs text-muted-foreground">
-                    {capture.post_captured_at ? "Done" : "Incomplete"}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Photo guidance: {capture.photo_guidance?.trim() ? capture.photo_guidance : "No guidance provided"}
-                </p>
-              </CardHeader>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm">
+                  Area {capture.order_index}: {capture.area_name}
+                </CardTitle>
+                <span className="text-xs text-muted-foreground">
+                  {capture.post_captured_at ? "Done" : "Incomplete"}
+                </span>
+              </div>
+            </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>

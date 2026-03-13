@@ -6,7 +6,9 @@ import { apiFetch } from "@/lib/api";
 import type { JobRow, JobsResponse } from "@/types/models";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { CircleDot, MapPin, User, FileText, Clock3 } from "lucide-react";
+import Image from "next/image";
+import { CircleDot, MapPin, User, FileText, Clock3, Circle, Phone, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import _ from "lodash"; 
 
 type ScheduleTab = "upcoming" | "ongoing" | "completed";
@@ -73,6 +75,8 @@ export default function EngineerSchedulePage() {
   const [nowTick, setNowTick] = useState(() => Date.now());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [createdByEmail, setCreatedByEmail] = useState<string | null>(null);
 
   useEffect(() => {
     if (user && user.role !== "engineer") {
@@ -113,6 +117,16 @@ export default function EngineerSchedulePage() {
     return () => window.clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (!user?.created_by) {
+      setCreatedByEmail(null);
+      return;
+    }
+    apiFetch<{ email: string }>(`/users/${user.created_by}`)
+      .then((creator) => setCreatedByEmail(creator.email))
+      .catch(() => setCreatedByEmail(null));
+  }, [user?.created_by]);
+
   const filteredJobs = useMemo(() => {
     const nowMs = nowTick;
     const getScheduleMs = (job: JobRow) => {
@@ -147,10 +161,142 @@ export default function EngineerSchedulePage() {
     return null;
   }
 
+  if (profileOpen) {
+    return (
+      <>
+        <div className="p-4 pb-32">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <p className="text-2xl font-semibold text-primary">
+              Welcome <span className="text-dark-primary">to Aspect!</span>
+            </p>
+          </div>
+
+          <div className="rounded-[12px] border border-subtle bg-[linear-gradient(180deg,var(--color-bg-bakground)_0%,white_100%)] p-5 shadow-[0_2px_8px_rgba(39,84,157,0.06)]">
+            <div className="mb-4 flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-subtle bg-subtle">
+                  <div className="flex h-full w-full items-center justify-center">
+                    <span
+                      aria-hidden="true"
+                      className="h-7 w-7 bg-primary"
+                      style={{
+                        maskImage: "url('/assets/user_2.svg')",
+                        WebkitMaskImage: "url('/assets/user_2.svg')",
+                        maskRepeat: "no-repeat",
+                        WebkitMaskRepeat: "no-repeat",
+                        maskPosition: "center",
+                        WebkitMaskPosition: "center",
+                        maskSize: "contain",
+                        WebkitMaskSize: "contain",
+                      }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xl font-semibold text-dark-primary">{user.full_name}</p>
+                  <p className="text-base text-text-dark-gray">Engineer</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-lg font-semibold text-text-body">About</p>
+              <span className="inline-flex items-center rounded-[8px] border border-secondary px-3 py-1 text-sm font-medium text-primary">
+                <Circle className="mr-1 h-2 w-2 fill-current stroke-current" />
+                {user.is_active ? "Active" : "Inactive"}
+              </span>
+            </div>
+
+            <div className="space-y-4 text-base text-text-body">
+              <p className="inline-flex items-center gap-3">
+                <Phone className="h-4 w-4 text-text-dark-gray" />
+                <span className="font-medium">Phone:</span>
+                <span>{user.phone_number?.trim() ? user.phone_number : "Not provided"}</span>
+              </p>
+              <p className="inline-flex items-center gap-3 break-all">
+                <Mail className="h-4 w-4 text-text-dark-gray" />
+                <span className="font-medium">Email:</span>
+                <span>{user.email}</span>
+              </p>
+            </div>
+
+            <hr className="my-5 border-subtle" />
+
+            <div>
+              <p className="mb-3 text-lg font-semibold text-text-body">Address</p>
+              <p className="inline-flex items-start gap-2 text-base leading-6 text-text-body">
+                <MapPin className="mt-1 h-4 w-4 text-text-dark-gray" />
+                {user.address?.trim() ? user.address : "Address not provided"}
+              </p>
+            </div>
+
+            <hr className="my-5 border-subtle" />
+
+            <div>
+              <p className="mb-3 text-lg font-semibold text-text-body">System information</p>
+              <div className="space-y-2 text-base text-text-body">
+                <p className="inline-flex items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    className="h-4 w-4 bg-primary"
+                    style={{
+                      maskImage: "url('/assets/user_2.svg')",
+                      WebkitMaskImage: "url('/assets/user_2.svg')",
+                      maskRepeat: "no-repeat",
+                      WebkitMaskRepeat: "no-repeat",
+                      maskPosition: "center",
+                      WebkitMaskPosition: "center",
+                      maskSize: "contain",
+                      WebkitMaskSize: "contain",
+                    }}
+                  />
+                  Created by: {createdByEmail ?? "-"}
+                </p>
+                <p>
+                  Created on:{" "}
+                  {user.created_at ? new Date(user.created_at).toLocaleDateString() : "-"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 flex w-full justify-end">
+            <Button type="button" variant="outline" onClick={() => setProfileOpen(false)}>
+              Close
+            </Button>
+          </div>
+        </div>
+
+        {/* <EngineerBottomBar active="schedule" /> */}
+      </>
+    );
+  }
+
   return (
     <div className="pb-32">
       <div className="relative overflow-hidden bg-gradient-to-br from-dark-primary via-primary to-primary pt-8 px-4 pb-4 text-white">
-        <div className="absolute right-0 top-3 h-20 w-20 rounded-full bg-white/15" />
+        <div className="relative z-10 mb-4 flex items-center justify-between gap-3">
+          <p className="text-2xl font-semibold text-white">
+            Welcome <span className="text-white">to Aspect!</span>
+          </p>
+          <div className="flex items-center text-primary">
+            <button
+              type="button"
+              aria-label="Open profile"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md p-0 hover:bg-subtle"
+              onClick={() => setProfileOpen(true)}
+            >
+              <Image
+                src="/assets/profile.svg"
+                alt="Profile"
+                width={26}
+                height={26}
+                className="h-[26px] w-[26px]"
+              />
+            </button>
+          </div>
+        </div>
+        <div className="absolute right-0 top-3 h-20 w-20 rounded-full bg-white/15 z-0" />
         <div className="relative z-10 flex rounded-full border border-white/35 bg-white/10 p-1">
           {scheduleTabs.map((tab) => (
             <button
@@ -260,7 +406,7 @@ export default function EngineerSchedulePage() {
         </div>
       </div>
 
-      <EngineerBottomBar active="schedule" />
+      {/* <EngineerBottomBar active="schedule" /> */}
     </div>
   );
 }

@@ -353,7 +353,15 @@ export default function JobsPage() {
                   required
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={form.site_id}
-                  onChange={(e) => setForm((f) => ({ ...f, site_id: e.target.value }))}
+                  onChange={(e) => {
+                    const siteId = e.target.value;
+                    const selectedSite = sites.find((s) => s.id === Number(siteId));
+                    setForm((f) => ({
+                      ...f,
+                      site_id: siteId,
+                      template_id: selectedSite?.template_id ? String(selectedSite.template_id) : f.template_id,
+                    }));
+                  }}
                 >
                   <option value="">Select site</option>
                   {sites.map((site) => (
@@ -392,11 +400,14 @@ export default function JobsPage() {
                   onChange={(e) => setForm((f) => ({ ...f, engineer_id: e.target.value }))}
                 >
                   <option value="">Unassigned (Draft)</option>
-                  {engineers.map((engineer) => (
-                    <option key={engineer.id} value={engineer.id}>
-                      {engineer.full_name}
-                    </option>
-                  ))}
+                  {engineers.map((engineer) => {
+                    const types = [engineer.is_operative ? "Operative" : null, engineer.is_driver ? "Driver" : null].filter(Boolean);
+                    return (
+                      <option key={engineer.id} value={engineer.id}>
+                        {engineer.full_name}{types.length ? ` (${types.join(" • ")})` : ""}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -673,11 +684,14 @@ export default function JobsPage() {
                   onChange={(e) => setEditForm((f) => ({ ...f, engineer_id: e.target.value }))}
                 >
                   <option value="">Unassigned</option>
-                  {engineers.map((engineer) => (
-                    <option key={engineer.id} value={engineer.id}>
-                      {engineer.full_name}
-                    </option>
-                  ))}
+                  {engineers.map((engineer) => {
+                    const types = [engineer.is_operative ? "Operative" : null, engineer.is_driver ? "Driver" : null].filter(Boolean);
+                    return (
+                      <option key={engineer.id} value={engineer.id}>
+                        {engineer.full_name}{types.length ? ` (${types.join(" • ")})` : ""}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
               <div className="space-y-2">

@@ -19,6 +19,8 @@ export type User = {
   is_active: boolean;
   phone_number?: string | null;
   address?: string | null;
+  is_operative?: boolean;
+  is_driver?: boolean;
   created_by?: number | null;
   created_at?: string;
   updated_at?: string;
@@ -36,6 +38,7 @@ export type Site = {
   contact_phone: string | null;
   contact_email: string | null;
   notes: string | null;
+  template_id: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -155,6 +158,8 @@ export type SiteListItem = {
   contact_phone?: string | null;
   contact_email?: string | null;
   notes?: string | null;
+  template_id?: number | null;
+  template_name?: string | null;
   job_count?: number;
   created_at?: string;
   updated_at?: string;
@@ -189,6 +194,8 @@ export type TemplateDetail = TemplateListItem & {
 export type UserListItem = Pick<User, "id" | "email" | "full_name" | "role" | "is_active"> & {
   phone_number?: string | null;
   address?: string | null;
+  is_operative?: boolean;
+  is_driver?: boolean;
   created_at?: string;
   updated_at?: string;
 };

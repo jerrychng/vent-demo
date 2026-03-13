@@ -12,8 +12,8 @@
     "cap:open:ios": "npx cap open ios"
   },
   "dependencies": {
-    "@capacitor/cli": "^8.1.0",
-    "@capacitor/core": "^8.1.0",
+    "@capacitor/cli": "^8.2.0",
+    "@capacitor/core": "^8.2.0",
     "@hookform/resolvers": "^5.2.2",
     "@hugeicons/core-free-icons": "^1.2.1",
     "@hugeicons/react": "^1.1.5",
@@ -69,6 +69,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/jwt-decode": "^2.2.1",
     "@types/lodash": "^4.17.23",
     "@types/node": "20.10.0",

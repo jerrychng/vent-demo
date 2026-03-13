@@ -186,9 +186,6 @@ export default function EngineerJobDetailPage() {
               <CardTitle className="text-base">
                 Area {capture.order_index}: {capture.area_name}
               </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Photo guidance: {capture.photo_guidance?.trim() ? capture.photo_guidance : "No guidance provided"}
-              </p>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

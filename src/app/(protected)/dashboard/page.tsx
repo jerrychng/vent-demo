@@ -29,7 +29,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (loading || !user) return;
     if (user.role === "engineer") {
-      router.replace("/engineer-home");
+      router.replace("/engineer-schedule");
       return;
     }
 

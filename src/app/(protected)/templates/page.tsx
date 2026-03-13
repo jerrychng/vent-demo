@@ -24,10 +24,10 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow, 
+  TableRow,
 } from "@/components/ui/table";
 
-type AreaRow = { id?: number; name: string; order_index: string; photo_guidance: string };
+type AreaRow = { id?: number; name: string; order_index: string };
 
 function getTemplateValidationError(templateName: string, rows: AreaRow[]): string | null {
   if (!templateName.trim()) return "Template name is required.";
@@ -67,7 +67,7 @@ export default function TemplatesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [areas, setAreas] = useState<AreaRow[]>([{ name: "", order_index: "1", photo_guidance: "" }]);
+  const [areas, setAreas] = useState<AreaRow[]>([{ name: "", order_index: "1" }]);
   const [viewDetail, setViewDetail] = useState<TemplateDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<TemplateListItem | null>(null);
@@ -79,7 +79,7 @@ export default function TemplatesPage() {
     description: "",
     is_active: true,
   });
-  const [editAreas, setEditAreas] = useState<AreaRow[]>([{ name: "", order_index: "1", photo_guidance: "" }]);
+  const [editAreas, setEditAreas] = useState<AreaRow[]>([{ name: "", order_index: "1" }]);
   const [originalEditAreaIds, setOriginalEditAreaIds] = useState<number[]>([]);
   const editTemplateValidationError = getTemplateValidationError(editForm.name, editAreas);
 
@@ -132,7 +132,6 @@ export default function TemplatesPage() {
           areas: areaList.map((a, i) => ({
             name: a.name.trim(),
             order_index: parseOrderIndex(a.order_index, i + 1),
-            photo_guidance: a.photo_guidance.trim() || null
           }))
         })
       });
@@ -143,7 +142,7 @@ export default function TemplatesPage() {
       setShowForm(false);
       setName("");
       setDescription("");
-      setAreas([{ name: "", order_index: "1", photo_guidance: "" }]);
+      setAreas([{ name: "", order_index: "1" }]);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create template");
     } finally {
@@ -170,9 +169,8 @@ export default function TemplatesPage() {
                 id: a.id,
                 name: a.name ?? "",
                 order_index: String(a.order_index),
-                photo_guidance: a.photo_guidance ?? "",
               }))
-          : [{ name: "", order_index: "1", photo_guidance: "" }]
+          : [{ name: "", order_index: "1" }]
       );
       setOriginalEditAreaIds(detail.areas.map((a) => a.id));
     } catch (err: unknown) {
@@ -213,10 +211,9 @@ export default function TemplatesPage() {
 
       for (let i = 0; i < areaList.length; i += 1) {
         const area = areaList[i];
-        const payload = {
+        const payload: { name: string; order_index: number } = {
           name: area.name.trim(),
           order_index: parseOrderIndex(area.order_index, i + 1),
-          photo_guidance: area.photo_guidance.trim() || null,
         };
 
         if (area.id != null) {
@@ -267,7 +264,7 @@ export default function TemplatesPage() {
   }
 
   function addArea() {
-    setAreas((prev) => [...prev, { name: "", order_index: String(prev.length + 1), photo_guidance: "" }]);
+    setAreas((prev) => [...prev, { name: "", order_index: String(prev.length + 1) }]);
   }
 
   function removeArea(i: number) {
@@ -382,17 +379,7 @@ export default function TemplatesPage() {
                           />
                         </div>
                       </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Photo Guidance</Label>
-                        <Textarea
-                          placeholder="Photo guidance"
-                          rows={3}
-                          value={area.photo_guidance}
-                          onChange={(e) =>
-                            setAreas((prev) => prev.map((a, j) => (j === i ? { ...a, photo_guidance: e.target.value } : a)))
-                          }
-                        />
-                      </div>
+                      {/* Photo guidance removed from MVP */}
                       <div className="flex justify-end">
                         <Button type="button" variant="destructive" size="sm" onClick={() => removeArea(i)}>
                           Remove
@@ -557,11 +544,6 @@ export default function TemplatesPage() {
                         <p className="font-medium">
                           Order {area.order_index}: {area.name}
                         </p>
-                        {area.photo_guidance && (
-                          <p className="text-muted-foreground mt-1">
-                            Photo: {area.photo_guidance}
-                          </p>
-                        )}
                       </li>
                     ))}
                 </ul>
@@ -626,7 +608,7 @@ export default function TemplatesPage() {
                   variant="link"
                   size="sm"
                   className="h-auto p-0"
-                  onClick={() => setEditAreas((prev) => [...prev, { name: "", order_index: String(prev.length + 1), photo_guidance: "" }])}
+                  onClick={() => setEditAreas((prev) => [...prev, { name: "", order_index: String(prev.length + 1) }])}
                 >
                   + Add area
                 </Button>
@@ -664,17 +646,7 @@ export default function TemplatesPage() {
                         />
                       </div>
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-muted-foreground">Photo Guidance</Label>
-                      <Textarea
-                        placeholder="Photo guidance"
-                        rows={3}
-                        value={area.photo_guidance}
-                        onChange={(e) =>
-                          setEditAreas((prev) => prev.map((a, j) => (j === i ? { ...a, photo_guidance: e.target.value } : a)))
-                        }
-                      />
-                    </div>
+                    {/* Photo guidance removed from MVP */}
                     <div className="flex justify-end">
                       <Button
                         type="button"

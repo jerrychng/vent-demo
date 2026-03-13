@@ -5,8 +5,9 @@ import { apiFetch } from "@/lib/api";
 import Image from "next/image";
 import { getPhoneValidationError } from "@/lib/phoneValidation";
 import { toast } from "@/hooks/use-toast";
-import type { Site, SiteListItem, SitesResponse } from "@/types/models";
-import { type FormEvent, useEffect, useState } from "react";
+import type { Site, SiteListItem, SitesResponse, TemplateListItem, TemplatesResponse, UserListItem, UsersResponse, JobRow, JobsResponse, JobStatus } from "@/types/models";
+import React, { type FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,6 +40,7 @@ type SiteFormState = {
   contact_phone: string;
   contact_email: string;
   notes: string;
+  template_id: string;
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -69,21 +71,62 @@ function formatLastEdited(updatedAt?: string, createdAt?: string): string {
   return date.toLocaleString();
 }
 
+function getStatusBadgeClass(status: JobStatus): string {
+  if (status === "rejected") return "bg-light-red text-dark-red";
+  if (status === "approved") return "bg-light-green text-dark-green";
+  if (status === "in_progress") return "bg-light-orange text-orange";
+  if (status === "assigned") return "bg-subtle text-dark-primary";
+  return "bg-muted text-muted-foreground";
+}
+
+function formatScheduledWindow(start: string | null, end: string | null): string {
+  if (!start && !end) return "-";
+  const startDate = start ? new Date(start) : null;
+  const endDate = end ? new Date(end) : null;
+  const startText = startDate && !Number.isNaN(startDate.getTime()) ? startDate.toLocaleString() : "-";
+  const endText = endDate && !Number.isNaN(endDate.getTime()) ? endDate.toLocaleString() : "-";
+  if (!start) return `Ends: ${endText}`;
+  if (!end) return `Starts: ${startText}`;
+  return `${startText} - ${endText}`;
+}
+
+function getNowLocalDateTimeInputValue(): string {
+  const now = new Date();
+  const offsetMs = now.getTimezoneOffset() * 60_000;
+  return new Date(now.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
 export default function SitesPage() {
   const { user, loading } = useAuth();
+  const router = useRouter();
   const canManageSites =
     user?.role === "super_admin" || user?.role === "trade_manager";
 
   const [sites, setSites] = useState<SiteListItem[]>([]);
+  const [templates, setTemplates] = useState<TemplateListItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [viewDetail, setViewDetail] = useState<Site | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [jobsBySite, setJobsBySite] = useState<Record<number, JobRow[]>>({});
+  const [siteSearch, setSiteSearch] = useState("");
+  const [jobStatusFilter, setJobStatusFilter] = useState<string>("");
   const [editingSite, setEditingSite] = useState<SiteListItem | null>(null);
   const [deletingSite, setDeletingSite] = useState<SiteListItem | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [engineers, setEngineers] = useState<UserListItem[]>([]);
+  const [creatingJobForSite, setCreatingJobForSite] = useState<SiteListItem | null>(null);
+  const [submittingJob, setSubmittingJob] = useState(false);
+  const [jobForm, setJobForm] = useState({
+    title: "",
+    description: "",
+    template_id: "",
+    engineer_id: "",
+    scheduled_start_time: "",
+    scheduled_end_time: "",
+  });
   const [form, setForm] = useState({
     client_name: "",
     site_name: "",
@@ -94,7 +137,8 @@ export default function SitesPage() {
     contact_name: "",
     contact_phone: "",
     contact_email: "",
-    notes: ""
+    notes: "",
+    template_id: ""
   });
   const [editForm, setEditForm] = useState({
     client_name: "",
@@ -106,14 +150,48 @@ export default function SitesPage() {
     contact_name: "",
     contact_phone: "",
     contact_email: "",
-    notes: ""
+    notes: "",
+    template_id: ""
   });
   const createSiteValidationError = getSiteValidationError(form);
   const editSiteValidationError = getSiteValidationError(editForm);
 
+  const searchLower = siteSearch.trim().toLowerCase();
+  const filteredSites = sites.filter((site) => {
+    if (searchLower) {
+      const haystack = [site.client_name, site.site_name].filter(Boolean).join(" ").toLowerCase();
+      if (!haystack.includes(searchLower)) return false;
+    }
+    return true;
+  });
+
+  function getFilteredJobs(siteId: number): JobRow[] {
+    const jobs = jobsBySite[siteId] ?? [];
+    if (!jobStatusFilter) return jobs;
+    return jobs.filter((j) => j.status === jobStatusFilter);
+  }
+
   async function loadSites() {
     const res = await apiFetch<SitesResponse>("/sites");
     setSites(res.sites);
+  }
+
+  async function loadTemplates() {
+    const res = await apiFetch<TemplatesResponse>("/templates?is_active=true");
+    setTemplates(res.templates);
+  }
+
+  async function loadAllJobs() {
+    const res = await apiFetch<JobsResponse>("/jobs");
+    const grouped: Record<number, JobRow[]> = {};
+    for (const job of res.jobs) {
+      const siteId = job.site?.id;
+      if (siteId != null) {
+        if (!grouped[siteId]) grouped[siteId] = [];
+        grouped[siteId].push(job);
+      }
+    }
+    setJobsBySite(grouped);
   }
 
   useEffect(() => {
@@ -121,7 +199,14 @@ export default function SitesPage() {
     loadSites().catch((err: unknown) => {
       setError(err instanceof Error ? err.message : "Failed to load sites");
     });
-  }, [user]);
+    loadTemplates().catch(() => {});
+    loadAllJobs().catch(() => {});
+    if (canManageSites) {
+      apiFetch<UsersResponse>("/users?role=engineer")
+        .then((res) => setEngineers(res.users))
+        .catch(() => {});
+    }
+  }, [user, canManageSites]);
 
   async function openSiteDetail(id: number) {
     setLoadingDetail(true);
@@ -157,14 +242,15 @@ export default function SitesPage() {
           contact_name: form.contact_name || null,
           contact_phone: form.contact_phone || null,
           contact_email: form.contact_email || null,
-          notes: form.notes || null
+          notes: form.notes || null,
+          template_id: form.template_id ? Number(form.template_id) : null
         })
       });
       await loadSites();
       const t = toast({ title: "Site created successfully." });
       setTimeout(() => t.dismiss(), 4000);
       setShowForm(false);
-      setForm({ client_name: "", site_name: "", address_line_1: "", address_line_2: "", city: "", postcode: "", contact_name: "", contact_phone: "", contact_email: "", notes: "" });
+      setForm({ client_name: "", site_name: "", address_line_1: "", address_line_2: "", city: "", postcode: "", contact_name: "", contact_phone: "", contact_email: "", notes: "", template_id: "" });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create site");
     } finally {
@@ -187,7 +273,8 @@ export default function SitesPage() {
         contact_name: detail.contact_name ?? "",
         contact_phone: detail.contact_phone ?? "",
         contact_email: detail.contact_email ?? "",
-        notes: detail.notes ?? ""
+        notes: detail.notes ?? "",
+        template_id: detail.template_id ? String(detail.template_id) : ""
       });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load site for editing");
@@ -216,7 +303,8 @@ export default function SitesPage() {
           contact_name: editForm.contact_name || null,
           contact_phone: editForm.contact_phone || null,
           contact_email: editForm.contact_email || null,
-          notes: editForm.notes || null
+          notes: editForm.notes || null,
+          template_id: editForm.template_id ? Number(editForm.template_id) : null
         })
       });
       await loadSites();
@@ -253,6 +341,59 @@ export default function SitesPage() {
     }
   }
 
+  function openCreateJob(site: SiteListItem) {
+    setCreatingJobForSite(site);
+    setJobForm({
+      title: "",
+      description: "",
+      template_id: site.template_id ? String(site.template_id) : "",
+      engineer_id: "",
+      scheduled_start_time: "",
+      scheduled_end_time: "",
+    });
+  }
+
+  async function handleCreateJob(e: FormEvent) {
+    e.preventDefault();
+    if (!creatingJobForSite) return;
+    setError(null);
+    setSubmittingJob(true);
+    try {
+      const nowMs = Date.now();
+      if (jobForm.engineer_id) {
+        if (!jobForm.scheduled_start_time || !jobForm.scheduled_end_time) {
+          throw new Error("Scheduled start and end time are required when assigning an engineer");
+        }
+        if (new Date(jobForm.scheduled_start_time).getTime() < nowMs) {
+          throw new Error("Scheduled start time cannot be before the current time");
+        }
+        if (new Date(jobForm.scheduled_end_time).getTime() <= new Date(jobForm.scheduled_start_time).getTime()) {
+          throw new Error("Scheduled end time must be after start time");
+        }
+      }
+      await apiFetch("/jobs", {
+        method: "POST",
+        body: JSON.stringify({
+          title: jobForm.title.trim(),
+          description: jobForm.description.trim() || null,
+          site_id: creatingJobForSite.id,
+          template_id: Number(jobForm.template_id),
+          engineer_id: jobForm.engineer_id ? Number(jobForm.engineer_id) : null,
+          scheduled_start_time: jobForm.scheduled_start_time || null,
+          scheduled_end_time: jobForm.scheduled_end_time || null,
+        }),
+      });
+      await Promise.all([loadSites(), loadAllJobs()]);
+      const t = toast({ title: "Job created successfully." });
+      setTimeout(() => t.dismiss(), 4000);
+      setCreatingJobForSite(null);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to create job");
+    } finally {
+      setSubmittingJob(false);
+    }
+  }
+
   if (loading || !user) {
     return (
       <div className="space-y-2">
@@ -280,6 +421,41 @@ export default function SitesPage() {
       </div>
 
       {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+
+      <div className="flex flex-wrap gap-3 items-end">
+        <div className="space-y-1 flex-1 min-w-[180px]">
+          <Label htmlFor="site-search" className="text-xs text-muted-foreground">Search sites</Label>
+          <Input
+            id="site-search"
+            placeholder="Client or site name..."
+            value={siteSearch}
+            onChange={(e) => setSiteSearch(e.target.value)}
+            className="h-9"
+          />
+        </div>
+        <div className="space-y-1 min-w-[150px]">
+          <Label htmlFor="job-status-filter" className="text-xs text-muted-foreground">Job status</Label>
+          <select
+            id="job-status-filter"
+            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+            value={jobStatusFilter}
+            onChange={(e) => setJobStatusFilter(e.target.value)}
+          >
+            <option value="">All statuses</option>
+            <option value="draft">Draft</option>
+            <option value="assigned">Assigned</option>
+            <option value="in_progress">In Progress</option>
+            <option value="submitted">Submitted</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+        {(siteSearch || jobStatusFilter) && (
+          <Button variant="outline" size="sm" className="h-9" onClick={() => { setSiteSearch(""); setJobStatusFilter(""); }}>
+            Clear
+          </Button>
+        )}
+      </div>
 
       {showForm && (
         <Card>
@@ -329,6 +505,20 @@ export default function SitesPage() {
                   <Label htmlFor="notes">Notes</Label>
                   <Textarea id="notes" rows={3} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
                 </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="template_id">Default template</Label>
+                  <select
+                    id="template_id"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={form.template_id}
+                    onChange={(e) => setForm((f) => ({ ...f, template_id: e.target.value }))}
+                  >
+                    <option value="">No template</option>
+                    {templates.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <Button type="submit" disabled={submitting || !!createSiteValidationError}>
                 {submitting ? (
@@ -347,9 +537,9 @@ export default function SitesPage() {
 
       <Card className="md:hidden p-3">
         <MobileExpandableList
-          items={sites}
+          items={filteredSites}
           getKey={(site) => site.id}
-          emptyMessage={canManageSites ? "No sites yet. Create one above." : "No sites yet."}
+          emptyMessage={siteSearch ? "No sites match your search." : canManageSites ? "No sites yet. Create one above." : "No sites yet."}
           mobileHeader={(
             <div className="grid grid-cols-[1fr_auto] items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">
               <span>Site</span>
@@ -361,7 +551,7 @@ export default function SitesPage() {
               <p className="min-w-0 truncate text-sm font-semibold text-dark-primary">
                 {site.site_name ?? site.client_name}
               </p>
-              <span className="justify-self-start text-xs text-text-dark-gray">{site.job_count ?? 0} jobs</span>
+              <span className="justify-self-start text-xs text-text-dark-gray">{getFilteredJobs(site.id).length} jobs</span>
             </div>
           )}
           renderDetails={(site) => (
@@ -371,16 +561,39 @@ export default function SitesPage() {
                 <p className="text-sm text-dark-primary">{site.client_name}</p>
               </div>
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Address</p>
-                <p className="text-sm text-dark-primary">
-                  {[site.address_line_1, site.address_line_2, site.city, site.postcode].filter(Boolean).join(", ") || "-"}
-                </p>
-              </div>
-              <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Contact</p>
                 <p className="text-sm text-dark-primary">
                   {[site.contact_name, site.contact_phone, site.contact_email].filter(Boolean).join(" | ") || "-"}
                 </p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray">Template</p>
+                <p className="text-sm text-dark-primary">{site.template_name ?? "-"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-dark-gray mb-1">Jobs ({getFilteredJobs(site.id).length})</p>
+                {getFilteredJobs(site.id).length === 0 ? (
+                  <p className="text-xs text-muted-foreground">{jobStatusFilter ? "No jobs match the selected status." : "No jobs for this site yet."}</p>
+                ) : (
+                  <div className="space-y-2">
+                    {getFilteredJobs(site.id).map((job) => (
+                      <div
+                        key={job.id}
+                        className="flex items-center justify-between rounded-md border p-2 cursor-pointer hover:bg-accent/50"
+                        onClick={() => router.push(`/jobs/${job.id}`)}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium truncate">{job.title}</p>
+                          <p className="text-xs text-muted-foreground">{job.reference} &middot; {job.engineer?.full_name ?? "Unassigned"}</p>
+                          <p className="text-xs text-muted-foreground">{formatScheduledWindow(job.scheduled_start_time ?? null, job.scheduled_end_time ?? null)}</p>
+                        </div>
+                        <span className={`ml-2 shrink-0 inline-flex rounded-md px-2 py-0.5 text-[10px] font-medium capitalize ${getStatusBadgeClass(job.status)}`}>
+                          {job.status.replace("_", " ")}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -394,6 +607,9 @@ export default function SitesPage() {
                 </Button>
                 {canManageSites && (
                   <>
+                    <Button variant="primary" size="sm" className="flex-1" onClick={() => openCreateJob(site)}>
+                      Create Job
+                    </Button>
                     <Button variant="outline" size="sm" className="flex-1" onClick={() => startEditSite(site)}>
                       Edit
                     </Button>
@@ -412,53 +628,82 @@ export default function SitesPage() {
         <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[140px]">Client</TableHead>
-              <TableHead className="w-[120px]">Site</TableHead>
-              <TableHead className="w-[220px]">Address</TableHead>
-              <TableHead className="w-[70px]">Jobs</TableHead>
-              <TableHead className="w-[220px] text-right">Actions</TableHead>
+              <TableHead className="w-[160px]">Client</TableHead>
+              <TableHead className="w-[140px]">Site</TableHead>
+              <TableHead className="w-[160px]">Template</TableHead>
+              <TableHead className="w-[80px]">Jobs</TableHead>
+              <TableHead className="w-[240px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sites.map((site) => (
-              <TableRow key={site.id}>
-                <TableCell className="align-top whitespace-normal break-words">{site.client_name}</TableCell>
-                <TableCell className="text-muted-foreground align-top whitespace-normal break-words">{site.site_name ?? "-"}</TableCell>
-                <TableCell className="align-top whitespace-normal break-words">
-                  {[site.address_line_1, site.address_line_2, site.city, site.postcode]
-                    .filter((part) => !!part)
-                    .join(", ")}
-                </TableCell>
-                <TableCell className="align-top">{site.job_count ?? 0}</TableCell>
-                <TableCell className="text-right align-top">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="transparent"
-                      size="sm"
-                      className="bg-accent text-accent-foreground hover:opacity-75"
-                      disabled={loadingDetail}
-                      onClick={() => openSiteDetail(site.id)}
-                    >
-                      View
-                    </Button>
-                    {canManageSites && (
-                      <>
-                        <Button variant="outline" size="sm" className="hover:bg-transparent hover:text-foreground hover:opacity-75" onClick={() => startEditSite(site)}>
-                          Edit
+            {filteredSites.map((site) => {
+              const siteJobList = getFilteredJobs(site.id);
+              return (
+                <React.Fragment key={site.id}>
+                  <TableRow>
+                    <TableCell className="align-top whitespace-normal break-words">{site.client_name}</TableCell>
+                    <TableCell className="text-muted-foreground align-top whitespace-normal break-words">{site.site_name ?? "-"}</TableCell>
+                    <TableCell className="text-muted-foreground align-top whitespace-normal break-words">{site.template_name ?? "-"}</TableCell>
+                    <TableCell className="align-top">{siteJobList.length} {siteJobList.length === 1 ? "job" : "jobs"}</TableCell>
+                    <TableCell className="text-right align-top">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="transparent"
+                          size="sm"
+                          className="bg-accent text-accent-foreground hover:opacity-75"
+                          disabled={loadingDetail}
+                          onClick={() => openSiteDetail(site.id)}
+                        >
+                          View
                         </Button>
-                        <Button variant="destructive" size="sm" onClick={() => setDeletingSite(site)}>
-                          Delete
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-            {sites.length === 0 && !error && (
+                        {canManageSites && (
+                          <>
+                            <Button variant="primary" size="sm" onClick={() => openCreateJob(site)}>
+                              Create Job
+                            </Button>
+                            <Button variant="outline" size="sm" className="hover:bg-transparent hover:text-foreground hover:opacity-75" onClick={() => startEditSite(site)}>
+                              Edit
+                            </Button>
+                            <Button variant="destructive" size="sm" onClick={() => setDeletingSite(site)}>
+                              Delete
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  {siteJobList.length > 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="bg-muted/30 p-3 pt-1">
+                        <p className="text-xs font-semibold text-muted-foreground mb-2">Jobs for {site.site_name ?? site.client_name}</p>
+                        <div className="space-y-2">
+                          {siteJobList.map((job) => (
+                            <div
+                              key={job.id}
+                              className="flex items-center justify-between rounded-md border bg-background p-3 cursor-pointer hover:bg-accent/50"
+                              onClick={() => router.push(`/jobs/${job.id}`)}
+                            >
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-medium truncate">{job.title}</p>
+                                <p className="text-xs text-muted-foreground">{job.reference} &middot; {job.engineer?.full_name ?? "Unassigned"}</p>
+                                <p className="text-xs text-muted-foreground">{formatScheduledWindow(job.scheduled_start_time ?? null, job.scheduled_end_time ?? null)}</p>
+                              </div>
+                              <span className={`ml-2 shrink-0 inline-flex rounded-md px-2 py-0.5 text-[10px] font-medium capitalize ${getStatusBadgeClass(job.status)}`}>
+                                {job.status.replace("_", " ")}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
+              );
+            })}
+            {filteredSites.length === 0 && !error && (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                  {canManageSites ? "No sites yet. Create one above." : "No sites yet."}
+                  {siteSearch ? "No sites match your search." : canManageSites ? "No sites yet. Create one above." : "No sites yet."}
                 </TableCell>
               </TableRow>
             )}
@@ -478,15 +723,6 @@ export default function SitesPage() {
               {viewDetail.site_name && viewDetail.client_name && (
                 <p><span className="font-medium text-muted-foreground">Client:</span> {viewDetail.client_name}</p>
               )}
-              <div>
-                <p className="font-medium text-muted-foreground mb-1">Address</p>
-                <p>
-                  {viewDetail.address_line_1}
-                  {viewDetail.address_line_2 ? `, ${viewDetail.address_line_2}` : ""}
-                  <br />
-                  {viewDetail.city} {viewDetail.postcode}
-                </p>
-              </div>
               {(viewDetail.contact_name || viewDetail.contact_phone || viewDetail.contact_email) && (
                 <div>
                   <p className="font-medium text-muted-foreground mb-1">Contact</p>
@@ -496,6 +732,9 @@ export default function SitesPage() {
                     {viewDetail.contact_email && <span>{viewDetail.contact_email}</span>}
                   </p>
                 </div>
+              )}
+              {viewDetail.template_id && (
+                <p><span className="font-medium text-muted-foreground">Default Template:</span> {templates.find((t) => t.id === viewDetail.template_id)?.name ?? "-"}</p>
               )}
               {viewDetail.notes && (
                 <p><span className="font-medium text-muted-foreground">Notes:</span> {viewDetail.notes}</p>
@@ -564,6 +803,20 @@ export default function SitesPage() {
                 <Label htmlFor="edit-notes">Notes</Label>
                 <Textarea id="edit-notes" rows={3} value={editForm.notes} onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))} />
               </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="edit-template_id">Default template</Label>
+                <select
+                  id="edit-template_id"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={editForm.template_id}
+                  onChange={(e) => setEditForm((f) => ({ ...f, template_id: e.target.value }))}
+                >
+                  <option value="">No template</option>
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setEditingSite(null)} disabled={savingEdit}>
@@ -593,6 +846,102 @@ export default function SitesPage() {
               {deleting ? "Deleting..." : "Delete"}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!creatingJobForSite} onOpenChange={(open) => !open && setCreatingJobForSite(null)}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto rounded-[12px]">
+          <DialogHeader>
+            <DialogTitle>Create job for {creatingJobForSite?.site_name ?? creatingJobForSite?.client_name ?? "site"}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateJob} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="job-title">Title <span className="text-destructive">*</span></Label>
+                <Input
+                  id="job-title"
+                  required
+                  value={jobForm.title}
+                  onChange={(e) => setJobForm((f) => ({ ...f, title: e.target.value }))}
+                  placeholder="Job title"
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="job-description">Description</Label>
+                <Textarea
+                  id="job-description"
+                  value={jobForm.description}
+                  onChange={(e) => setJobForm((f) => ({ ...f, description: e.target.value }))}
+                  placeholder="Optional description"
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="job-template">Template <span className="text-destructive">*</span></Label>
+                <select
+                  id="job-template"
+                  required
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={jobForm.template_id}
+                  onChange={(e) => setJobForm((f) => ({ ...f, template_id: e.target.value }))}
+                >
+                  <option value="">Select template</option>
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="job-engineer">Engineer</Label>
+                <select
+                  id="job-engineer"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={jobForm.engineer_id}
+                  onChange={(e) => setJobForm((f) => ({ ...f, engineer_id: e.target.value }))}
+                >
+                  <option value="">Unassigned (Draft)</option>
+                  {engineers.map((eng) => {
+                    const types = [eng.is_operative ? "Operative" : null, eng.is_driver ? "Driver" : null].filter(Boolean);
+                    return (
+                      <option key={eng.id} value={eng.id}>
+                        {eng.full_name}{types.length ? ` (${types.join(" • ")})` : ""}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="job-scheduled-start">Scheduled start time</Label>
+                <Input
+                  id="job-scheduled-start"
+                  type="datetime-local"
+                  min={getNowLocalDateTimeInputValue()}
+                  required={!!jobForm.engineer_id}
+                  value={jobForm.scheduled_start_time}
+                  onChange={(e) => setJobForm((f) => ({ ...f, scheduled_start_time: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="job-scheduled-end">Scheduled end time</Label>
+                <Input
+                  id="job-scheduled-end"
+                  type="datetime-local"
+                  min={jobForm.scheduled_start_time || getNowLocalDateTimeInputValue()}
+                  required={!!jobForm.engineer_id}
+                  value={jobForm.scheduled_end_time}
+                  onChange={(e) => setJobForm((f) => ({ ...f, scheduled_end_time: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setCreatingJobForSite(null)} disabled={submittingJob}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={submittingJob}>
+                {submittingJob ? "Creating..." : "Create job"}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

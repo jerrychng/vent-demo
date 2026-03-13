@@ -96,6 +96,7 @@ const mockSites: Site[] = [
     contact_phone: "07400111222",
     contact_email: "canarywharf@bigeasy.example",
     notes: "Access via loading bay before 9:00 AM.",
+    template_id: 1,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: now()
   },
@@ -111,6 +112,7 @@ const mockSites: Site[] = [
     contact_phone: "07400333444",
     contact_email: "manchester@bigeasy.example",
     notes: "Report to reception and sign in on arrival.",
+    template_id: null,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: now()
   }
@@ -176,6 +178,7 @@ const mockJobDetails: Record<string, JobDetail> = {
       contact_phone: "07400111222",
       contact_email: "canarywharf@bigeasy.example",
       notes: "Access via loading bay before 9:00 AM.",
+      template_id: 1,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: now(),
     },
@@ -227,6 +230,7 @@ const mockJobDetails: Record<string, JobDetail> = {
       contact_phone: "07400333444",
       contact_email: "manchester@bigeasy.example",
       notes: "Report to reception and sign in on arrival.",
+      template_id: null,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: now(),
     },
@@ -278,6 +282,7 @@ const mockJobDetails: Record<string, JobDetail> = {
       contact_phone: "07400111222",
       contact_email: "canarywharf@bigeasy.example",
       notes: "Access via loading bay before 9:00 AM.",
+      template_id: 1,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: now(),
     },
@@ -329,6 +334,7 @@ const mockJobDetails: Record<string, JobDetail> = {
       contact_phone: "07400333444",
       contact_email: "manchester@bigeasy.example",
       notes: "Report to reception and sign in on arrival.",
+      template_id: null,
       created_at: "2026-01-01T00:00:00Z",
       updated_at: now(),
     },
@@ -362,6 +368,7 @@ function getJobList(status?: string, engineerId?: number): JobRow[] {
     title: j.title,
     status: j.status,
     site: {
+      id: j.site.id,
       client_name: j.site.client_name,
       site_name: j.site.site_name,
       address_line_1: j.site.address_line_1,
@@ -415,6 +422,8 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
         full_name: email.split("@")[0].replace(/\./g, " ") || "User",
         role: "trade_manager",
         is_active: true,
+        is_operative: false,
+        is_driver: false,
         created_by: null,
         created_at: ts,
         updated_at: ts,
@@ -483,7 +492,12 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       currentUser.role === "engineer"
         ? currentUser.id
         : Number.isFinite(requestedEngineerId) ? requestedEngineerId : undefined;
-    const jobs = getJobList(status, engineerId);
+    const siteParam = params.get("site_id");
+    const siteId = siteParam ? Number(siteParam) : undefined;
+    let jobs = getJobList(status, engineerId);
+    if (Number.isFinite(siteId)) {
+      jobs = jobs.filter((j) => j.site.id === siteId);
+    }
     return { jobs, total: jobs.length };
   }
 
@@ -754,22 +768,27 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
   // GET /sites
   if (pathname === "/sites" && method === "GET") {
     const search = params.get("search")?.toLowerCase() || "";
-    let list: SiteListItem[] = mockSites.map((s) => ({
-      id: s.id,
-      client_name: s.client_name,
-      site_name: s.site_name,
-      address_line_1: s.address_line_1,
-      address_line_2: s.address_line_2,
-      city: s.city,
-      postcode: s.postcode,
-      contact_name: s.contact_name,
-      contact_phone: s.contact_phone,
-      contact_email: s.contact_email,
-      notes: s.notes,
-      job_count: Object.values(mockJobDetails).filter((j) => j.site.id === s.id).length,
-      created_at: s.created_at,
-      updated_at: s.updated_at,
-    }));
+    let list: SiteListItem[] = mockSites.map((s) => {
+      const linkedTemplate = s.template_id ? mockTemplates.find((t) => t.id === s.template_id) : null;
+      return {
+        id: s.id,
+        client_name: s.client_name,
+        site_name: s.site_name,
+        address_line_1: s.address_line_1,
+        address_line_2: s.address_line_2,
+        city: s.city,
+        postcode: s.postcode,
+        contact_name: s.contact_name,
+        contact_phone: s.contact_phone,
+        contact_email: s.contact_email,
+        notes: s.notes,
+        template_id: s.template_id,
+        template_name: linkedTemplate?.name ?? null,
+        job_count: Object.values(mockJobDetails).filter((j) => j.site.id === s.id).length,
+        created_at: s.created_at,
+        updated_at: s.updated_at,
+      };
+    });
     if (search) {
       list = list.filter(
         (s) =>
@@ -815,6 +834,7 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
     if (contact_phone !== undefined) site.contact_phone = contact_phone ? String(contact_phone).trim() : null;
     if (contact_email !== undefined) site.contact_email = contact_email ? String(contact_email) : null;
     if (notes !== undefined) site.notes = notes ? String(notes) : null;
+    if (body.template_id !== undefined) site.template_id = body.template_id ? Number(body.template_id) : null;
     const sitePhoneError = getPhoneValidationError(String(site.contact_phone ?? ""));
     if (sitePhoneError) throw new Error(sitePhoneError);
     site.updated_at = now();
@@ -854,6 +874,7 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       contact_phone: contact_phone ?? null,
       contact_email: contact_email ?? null,
       notes: notes ?? null,
+      template_id: body.template_id ? Number(body.template_id) : null,
       created_at: ts,
       updated_at: ts
     };
@@ -1099,6 +1120,8 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       is_active: u.is_active ?? true,
       phone_number: u.phone_number ?? null,
       address: u.address ?? null,
+      is_operative: u.is_operative ?? false,
+      is_driver: u.is_driver ?? false,
       created_at: u.created_at,
       updated_at: u.updated_at
     }));
@@ -1124,6 +1147,8 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       is_active: u.is_active,
       phone_number: u.phone_number ?? null,
       address: u.address ?? null,
+      is_operative: u.is_operative ?? false,
+      is_driver: u.is_driver ?? false,
       created_at: u.created_at,
       updated_at: u.updated_at
     };
@@ -1133,12 +1158,14 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
     const u = users.find((x) => x.id === id);
     if (!u) throw new Error("User not found");
 
-    const { email, full_name, is_active, phone_number, address } = body as {
+    const { email, full_name, is_active, phone_number, address, is_operative, is_driver } = body as {
       email?: string;
       full_name?: string;
       is_active?: boolean;
       phone_number?: string | null;
       address?: string | null;
+      is_operative?: boolean;
+      is_driver?: boolean;
     };
 
     if (email !== undefined && String(email).trim()) u.email = String(email).trim();
@@ -1146,6 +1173,8 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
     if (is_active !== undefined) u.is_active = Boolean(is_active);
     if (phone_number !== undefined) u.phone_number = phone_number != null ? String(phone_number).trim() || null : null;
     if (address !== undefined) u.address = address != null ? String(address).trim() || null : null;
+    if (is_operative !== undefined) u.is_operative = Boolean(is_operative);
+    if (is_driver !== undefined) u.is_driver = Boolean(is_driver);
     u.updated_at = now();
 
     for (const job of Object.values(mockJobDetails)) {
@@ -1166,6 +1195,8 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       is_active: u.is_active,
       phone_number: u.phone_number ?? null,
       address: u.address ?? null,
+      is_operative: u.is_operative ?? false,
+      is_driver: u.is_driver ?? false,
       created_at: u.created_at,
       updated_at: u.updated_at
     };
@@ -1188,7 +1219,7 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
 
   // POST /users
   if (pathname === "/users" && method === "POST") {
-    const { email, password, full_name, phone_number, address, role: requestedRole } = body;
+    const { email, password, full_name, phone_number, address, role: requestedRole, is_operative, is_driver } = body;
     if (!email || !password || !full_name || !phone_number || !address) {
       throw new Error("email, password, full_name, phone_number, address required");
     }
@@ -1211,6 +1242,8 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       is_active: true,
       phone_number: String(phone_number).trim(),
       address: String(address).trim(),
+      is_operative: Boolean(is_operative),
+      is_driver: Boolean(is_driver),
       created_by: currentUser.id,
       created_at: ts,
       updated_at: ts
@@ -1223,7 +1256,9 @@ async function handleMock(path: string, options: RequestInit = {}): Promise<any>
       role: newUser.role,
       is_active: newUser.is_active,
       phone_number: newUser.phone_number ?? null,
-      address: newUser.address ?? null
+      address: newUser.address ?? null,
+      is_operative: newUser.is_operative ?? false,
+      is_driver: newUser.is_driver ?? false
     };
   }
 
